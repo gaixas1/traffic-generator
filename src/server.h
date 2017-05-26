@@ -12,7 +12,8 @@ protected:
 private :
 	bool print_interval;
 	int stats_interval;
+	long rangeLat;
 
-	bool flow(int fd, char * buffer, ofstream & log, bool echo, bool record);
+	bool flow(int fd, char * buffer, ofstream & log, bool echo, bool record, ofstream & recordlog);
 };
 

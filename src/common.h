@@ -21,6 +21,7 @@ struct dataSDU {
 	int size;		//in Bytes
 	int type;		//DTYPE_X
 	int flowIdent;	//Unique
+	int seqId;
 	char echo;		//true != 0
 	char record;	//true != 0
 	long long ping_time;
