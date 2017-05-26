@@ -1,5 +1,4 @@
 #include "server.h"
-#include <string>
 #include <fstream>
 
 #ifndef RINA_PREFIX
@@ -10,6 +9,15 @@
 using namespace std;
 using namespace std::chrono;
 using namespace rina;
+
+void server::setInterval(bool stat, int ms) {
+	print_interval = stat;
+	stats_interval = ms;
+}
+
+void server::setRecordRange(int ms) {
+	rangeLat = ms;
+}
 
 void server::handle_flow(int port_id, int fd) {
 	char buffer[BUFF_SIZE];
@@ -107,7 +115,6 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 	long long latCurrent = 0;
 	long countCurrent = 0;
 	int currentSeq = data->seqId;
-	rangeLat = 10;
 
 	for (;;) {
 		if (!read_data(fd, buffer)) {

@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 #ifndef RINA_PREFIX
-#define RINA_PREFIX "COMMON"
+	#define RINA_PREFIX "COMMON"
 #endif // !RINA_PREFIX
 #include <librina/librina.h>
 #include <librina/logs.h>

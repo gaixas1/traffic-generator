@@ -6,12 +6,13 @@
  *   Douwe De Bock	   <douwe.debock@ugent.be>
  *   Francesco Salvestrini <f.salvestrini@nextworks.it>
  *
+ *   Edit by Sergio Leon <slgaixas@ac.upc.edu>
+ *
  * This source code has been released under the GEANT outward license.
  * Refer to the accompanying LICENSE file for further information
  */
 
-#ifndef SIMPLE_AP_HPP
-#define SIMPLE_AP_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -19,54 +20,40 @@
 
 using namespace std;
 
-/* simple application process (AP) */
+struct port_fd {
+	int port, fd;
+	port_fd(int _port, int _fd) : port(_port), fd(_fd) {}
+};
+
+struct QoSpair {
+	string param;
+	string value;
+};
+
 
 class simple_ap {
 public:
+	simple_ap(const string& apn) :name (apn), instance ("1") {}
+	simple_ap(const string& apn, const string& api) : name (apn), instance (api) {}
 
-/* construction */
-
-simple_ap(const string& apn) :
-	name (apn),
-		instance ("1") {}
-simple_ap(const string& apn,
-	  const string& api) :
-	name (apn),
-		instance (api) {}
-
-/* destruction */
 	virtual ~simple_ap();
 
-/* registering and unregistering with a DIF */
-/* note "register" is a keyword */
-	void register_ap();
-	void register_ap(const string& dif_name);
-	void register_ap(const vector<string>& dif_names);
-	void unregister_ap();
-	void unregister_ap(const std::string& dif_name);
-	void unregister_ap(const vector<string>& dif_names);
+	bool register_ap();
+	bool register_ap(const string& dif_name);
+	bool register_ap(const vector<string>& dif_names);
+	bool unregister_ap();
+	bool unregister_ap(const string& dif_name);
+	bool unregister_ap(const vector<string>& dif_names);
 
-/* requesting and releasing N-1-flows */
-	int request_flow(const std::string& apn,
-			 const std::string& api,
-			 const std::string& qos_cube);
-
-	int request_flow(const std::string& apn,
-			 const std::string& api,
-			 const std::string& qos_cube,
-			 const std::string& dif_name);
+	port_fd request_flow(const string& apn, const string& api, const vector<QoSpair> & rq);
+	port_fd request_flow(const string& apn, const string& api, const vector<QoSpair> & rq, const string& dif_name);
 
 	int release_flow(const int port_id);
-	void release_all_flows();
+	int release_all_flows();
 
 protected:
-	std::string name;	/* Application Process Name */
-	/* FIXME: should be merged with AP Namespace */
-	std::string instance;	/* Application Process Instance */
-	std::vector<string> reg_difs; /*DIFs this AP is reg'd with */
-	std::map<int,string> my_flows; /* flows this AP has allocated */
-
-private:
+	string name;
+	string instance;
+	vector<string> reg_difs;
+	map<int,string> my_flows;
 };
-
-#endif // SIMPLE_AP

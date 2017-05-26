@@ -3,8 +3,10 @@
 
 class server : public simple_server {
 	public:
-	server();
-	~server();
+		server(std::string name, std::string api) : simple_server(name, api) {};
+
+		void setInterval(bool stat, int ms);
+		void setRecordRange(int ms);
 
 protected:
 	void handle_flow(int port_id, int fd);

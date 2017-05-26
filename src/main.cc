@@ -228,16 +228,17 @@ int main(int argc, char * argv[])
 		if (listen) {
 			// Server mode
 			server s(server_apn, server_api);
-			s.set_interval(interval);
-			s.set_output_path(csv_path);
 			s.register_ap(dif_name);
+			s.setInterval(true, interval*1000);
+			s.setRecordRange(10);
 			s.run();
 		} else {
 			// Client mode
-			client c(client_apn, client_api);
+			client c(client_apn, client_api, server_apn, server_api, qos_cube);
 			/* FIXME: "" means any DIF, should be cleaned up */
 			if (registration)
 				c.register_ap(dif_name);
+			c.run();
 			int fd = c.request_flow(server_apn,
 						server_api,
 						qos_cube);
