@@ -1,56 +1,18 @@
-/*
- * Traffic generator
- *
- *   Addy Bombeke <addy.bombeke@ugent.be>
- *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
- *   Douwe De Bock <douwe.debock@ugent.be>
- *   Sander Vrijders <sander.vrijders@intec.ugent.be>
- *
- * This source code has been released under the GEANT outward license.
- * Refer to the accompanying LICENSE file for further information
- */
+#pragma once
+#include "simple_server.h"
 
-#ifndef SERVER_HPP
-#define SERVER_HPP
-
-#include <librina/librina.h>
-#include <time.h>
-#include <signal.h>
-
-#include "simple_ap.h"
-
-class server: public simple_ap
-{
-public:
-server(const std::string& apn,
-       const std::string& api) :
-	simple_ap(apn, api),
-		stat_interval(0) {}
-
-	void run();
-	void set_interval(unsigned int stat_interval);
-	void set_output_path(string& path);
+class server : public simple_server {
+	public:
+	server();
+	~server();
 
 protected:
-	/* not used yet */
-	typedef enum {
-		S_SERVER_REGISTER,  /* registering server with DIF */
-		S_SERVER_NEGOTIATE, /* negotiating test parameters */
-		S_SERVER_TEST,	    /* performing tests */
-		S_SERVER_IDLE	    /* waiting for client */
-	} server_state_t;
-
-private:
-
-/* internal state */
-
-	unsigned int stat_interval ; /* interval to report stats (ms) */
-	string output_path; /* path to output files, empty for no output */
-
-/* internal functions */
-
-	/* respond to a new flow */
 	void handle_flow(int port_id, int fd);
+
+private :
+	bool print_interval;
+	int stats_interval;
+
+	bool flow(int fd, char * buffer, ofstream & log, bool echo, bool record);
 };
 
-#endif
