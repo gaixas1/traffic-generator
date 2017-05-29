@@ -74,12 +74,13 @@ void server::handle_flow(int port_id, int fd) {
 
 struct stats {
 	time_point<steady_clock> t0;
+	int seq0;
 	long pdu_num;
 	long long pdu_data;
 	double m, S, n;
 	long long minLat, maxLat;
 
-	stats(time_point<steady_clock> _t0) : t0(_t0), pdu_num(0), pdu_data(0), m(0), S(0), n(0), minLat(LLONG_MAX), maxLat(LLONG_MIN) {}
+	stats(time_point<steady_clock> _t0, int _seq0) : t0(_t0), seq0(_seq0), pdu_num(0), pdu_data(0), m(0), S(0), n(0), minLat(LLONG_MAX), maxLat(LLONG_MIN) {}
 	void sample(int len, long long lat) {
 		pdu_num++;
 		pdu_data += len;
@@ -90,13 +91,16 @@ struct stats {
 		m = m + (lat - m) / n;
 		S = S + (lat - m)*(lat - m0);
 	}
-	void print(time_point<steady_clock> t1, ofstream & log) {
+	void print(time_point<steady_clock> t1, int seq1, ofstream & log) {
 		long long duration = duration_cast<milliseconds>( t1 - t0).count();
 		double rate_num = (double)pdu_num * 1000.0 / (double)duration;
 		double rate_data = (double)pdu_data * 8000.0 / (double)duration;
+		int total = seq1 - seq0;
+		double received = (double)pdu_num / (double)total;
 		log << t1.time_since_epoch << "\tDuration" << duration << " ms"
 			<< "\tPDUs" << pdu_num << "(" << pdu_data << " B)"
 			<< "\tPDUs" << rate_num << " PDU/s (" << rate_data << " bps)"
+			<< "\tSuccess prob." << received
 			<< "\tLatency" << minLat << " / " << m << " / " << maxLat << " ms | Std dev " <<(sqrt(S / n))
 			<< endl;
 	}
@@ -108,13 +112,14 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 
 	auto interval = milliseconds(stats_interval);
 
-	stats full_stats(high_resolution_clock::now());
-	stats partial_stats(high_resolution_clock::now());
-	int i = 0;
-
 	long long latCurrent = 0;
 	long countCurrent = 0;
 	int currentSeq = data->seqId;
+
+	stats full_stats(high_resolution_clock::now(), currentSeq);
+	stats partial_stats(high_resolution_clock::now(), currentSeq);
+	int i = 0;
+
 
 	for (;;) {
 		if (!read_data(fd, buffer)) {
@@ -132,7 +137,9 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 
 				if (currentSeq >= data->seqId) {
 					LOG_INFO("RECEIVE DATA SDU UNORDERED - SKIP DATA");
-				} else if (currentSeq + 1 != data->seqId) {
+					continue;
+				}
+				if (currentSeq + 1 != data->seqId) {
 					recordlog << latCurrent << "\t" << countCurrent << endl;
 					recordlog << 0 << "\t" << (data->seqId - currentSeq - 1) << endl;
 					latCurrent = lat;
@@ -145,6 +152,8 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 					countCurrent = 1;
 				}
 			}
+
+			currentSeq = data->seqId;
 
 			if (echo) {
 				if (write(fd, buffer, data->size) != data->size) {
@@ -159,8 +168,8 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 				auto t1 = high_resolution_clock::now();
 				if (t1 < partial_stats.t0 + interval) {
 					log << "Interval " << i++ << " - ";
-					full_stats.print(high_resolution_clock::now(), log);
-					partial_stats = stats(t1);
+					partial_stats.print(high_resolution_clock::now(), currentSeq, log);
+					partial_stats = stats(t1, currentSeq);
 				}
 			}
 		}
@@ -180,7 +189,7 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 	}
 
 	log << "Flow ended - ";
-	full_stats.print(high_resolution_clock::now(), log);
+	full_stats.print(high_resolution_clock::now(), currentSeq, log);
 
 	return true;
 }

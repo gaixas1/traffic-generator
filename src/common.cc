@@ -20,4 +20,5 @@ bool read_data(int fd, char * buffer) {
 		}
 		padding += ret;
 	} while (padding < data->size);
+	return true;
 }
