@@ -29,3 +29,5 @@ struct dataSDU {
 };
 
 bool read_data(int fd, char * buffer);
+
+bool echo_listener(int fd, int flowIdent);

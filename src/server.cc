@@ -21,7 +21,7 @@ void server::setRecordRange(int ms) {
 
 void server::handle_flow(int port_id, int fd) {
 	char buffer[BUFF_SIZE];
-	dataSDU * data = (dataSDU*) &buffer;
+	dataSDU * data = (dataSDU*)buffer;
 
 	if (!read_data(fd, buffer)) {
 		LOG_ERR("FIRST READ FAILED - ABORT FLOW");
