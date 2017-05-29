@@ -14,50 +14,28 @@ using namespace std::chrono;
 using namespace std::this_thread;
 using namespace rina;
 
-void data_client::handle_flow(int port_id, int fd) {
-	char buffer[BUFF_SIZE];
-	dataSDU * data = (dataSDU*)buffer;
-	srand(time(0));
-
-	data->size = sizeof(dataSDU);
-	data->type = DTYPE_INIT;
-	data->flowIdent = flowIdent;
-	data->seqId = 0;
-	data->echo = doEcho;
-	data->record = doRecord;
-
-
-	if (!read_data(fd, buffer)) {
-		LOG_ERR("FIRST READ FAILED - ABORT FLOW");
-		release_flow(port_id);
-		return;
+void data_client::setBurstSize(int min, int max) {
+	if (min == max) {
+		MIN_BURST = min;
+		DIF_BURST = 0;
 	}
-
-	if (data->type == DTYPE_INIT) {
-		LOG_ERR("WRONG INITIAL MESSAGE - ABORT FLOW");
-
-		release_flow(port_id);
-		return;
+	else if (min < max) {
+		MIN_BURST = min;
+		DIF_BURST = max - min;
 	}
-
-	thread * echo_t = nullptr;
-	if (doEcho) {
-		echo_t = new thread(echo_listener, fd, flowIdent);
+	else {
+		MIN_BURST = max;
+		DIF_BURST = min - max;
 	}
-
-	bool result = flow(fd, buffer);
-
-	if (doEcho) {
-		echo_t->join();
-		delete echo_t;
+	if (MIN_BURST <= 0) {
+		throw std::invalid_argument("received negative value for burst size");
 	}
-
-	if (!result) {
-		LOG_ERR("SOMETHING FAILED - ABORT FLOW");
-	}
-
-	release_flow(port_id);
 }
+
+void data_client::setData(int kB) {
+	MIN_DATA = kB;
+}
+
 
 bool data_client::flow(int fd, char * buffer) {
 	dataSDU * data = (dataSDU*)buffer;
@@ -84,7 +62,7 @@ bool data_client::flow(int fd, char * buffer) {
 		current_burst++;
 
 		if (current_burst >= current_burst_size) {
-			if (busy_wait) {
+			if (busyWait) {
 				while (system_clock::now() < t) {}
 			} else {
 				if (t > system_clock::now()) {

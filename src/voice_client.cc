@@ -14,65 +14,55 @@ using namespace std::chrono;
 using namespace std::this_thread;
 using namespace rina;
 
-
-void voice_client::handle_flow(int port_id, int fd) {
-	char buffer[BUFF_SIZE];
-	dataSDU * data = (dataSDU*)buffer;
-	srand(time(0));
-
-	data->size = sizeof(dataSDU);
-	data->type = DTYPE_INIT;
-	data->flowIdent = flowIdent;
-	data->seqId = 0;
-	data->echo = doEcho;
-	data->record = doRecord;
-
-
-	if (!read_data(fd, buffer)) {
-		LOG_ERR("FIRST READ FAILED - ABORT FLOW");
-		release_flow(port_id);
-		return;
+void voice_client::setON(int min_ms, int max_ms) {
+	if (min_ms == max_ms) {
+		MIN_ON = min_ms;
+		DIF_ON = 0;
 	}
-
-	if (data->type == DTYPE_INIT) {
-		LOG_ERR("WRONG INITIAL MESSAGE - ABORT FLOW");
-
-		release_flow(port_id);
-		return;
+	else if (min_ms < max_ms) {
+		MIN_ON = min_ms;
+		DIF_ON = max_ms - min_ms;
 	}
-
-	thread * echo_t = nullptr;
-	if (doEcho) {
-		echo_t = new thread(echo_listener, fd, flowIdent);
+	else {
+		MIN_ON = max_ms;
+		DIF_ON = min_ms - max_ms;
 	}
-
-	bool result = flow(fd, buffer);
-
-	if (doEcho) {
-		echo_t->join();
-		delete echo_t;
+	if (MIN_ON <= 0) {
+		throw std::invalid_argument("received negative value for ON interval");
 	}
-
-	if (!result) {
-		LOG_ERR("SOMETHING FAILED - ABORT FLOW");
+}
+void voice_client::setOFF(int min_ms, int max_ms) {
+	if (min_ms == max_ms) {
+		MIN_OFF = min_ms;
+		DIF_OFF = 0;
 	}
-
-	release_flow(port_id);
+	else if (min_ms < max_ms) {
+		MIN_OFF = min_ms;
+		DIF_OFF = max_ms - min_ms;
+	}
+	else {
+		MIN_OFF = max_ms;
+		DIF_OFF = min_ms - max_ms;
+	}
+	if (MIN_OFF <= 0) {
+		throw std::invalid_argument("received negative value for OFF interval");
+	}
 }
 
 
+void voice_client::setDuration(int ms) {
+	duration = ms;
+}
 
 bool voice_client::flow(int fd, char * buffer) {
 	dataSDU * data = (dataSDU*)buffer;
-	int remaining = (MIN_DATA * 2000) / (2 * MIN_PDU + DIF_PDU);
-
 	nanoseconds timeD(timeDIF);
 
 	data->type = DTYPE_DATA;
 
 	sleep_for(milliseconds(rand() % MIN_OFF));
 
-	auto tend = system_clock::now() + seconds(duration);
+	auto tend = system_clock::now() + milliseconds(duration);
 	do {
 		int remaining = (MIN_ON + rand() % DIF_ON) * 1000 / nsPDU;
 		auto t = system_clock::now() + timeD;
@@ -89,7 +79,7 @@ bool voice_client::flow(int fd, char * buffer) {
 
 			remaining--;
 
-			if (busy_wait) {
+			if (busyWait) {
 				while(system_clock::now() < t) {}
 			} else {
 				if (t > system_clock::now()) {
