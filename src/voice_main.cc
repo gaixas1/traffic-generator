@@ -1,273 +1,272 @@
-/*
- * Traffic generator main
- *
- *   Dimitri Staessens <dimitri.staessens@intec.ugent.be>
- *   Douwe De Bock <douwe.debock@ugent.be>
- *
- * This source code has been released under the GEANT outward license.
- * Refer to the accompanying LICENSE file for further information
- */
-
 #include <cstdlib>
 #include <string>
 
 #include <librina/librina.h>
 
-#define RINA_PREFIX	"traffic-generator"
+#define RINA_PREFIX	"traffic-generator-server"
 #include <librina/logs.h>
 
 #include "tclap/CmdLine.h"
 
 #include "config.h"
-#include "client.h"
-#include "server.h"
+#include "voice_client.h"
 
-/* TODO: add support for test scripts */
+using namespace std;
+using namespace TCLAP;
 
-int main(int argc, char * argv[])
-{
-	static bool		  listen;
-	static bool		  registration;
-	static bool		  busy;
-	static unsigned long long count;
-	static unsigned int	  size;
-	static unsigned int	  rate;
-	static unsigned int	  duration;
-	static unsigned int	  interval;
-	static std::string	  server_apn;
-	static std::string	  server_api;
-	static std::string	  client_apn;
-	static std::string	  client_api;
-	static std::string	  dif_name;
-	static std::string	  distribution_type;
-	static std::string	  qos_cube;
-	static std::string        csv_path;
-	static double		  poisson_mean;
+int main(int argc, char * argv[]) {
+	string	apName, apInstance, dstName, dstInstance;
+	vector<string> difs;
+	vector<QoSpair> qos;
+	int		interval_duration;
+	int timeDif, flowIdent;
+	bool echo, record, busywait;
+	int minPDU, maxPDU, interPDU;
+	int duration, minOn, maxOn, minOff, maxOff;
+
 
 	try {
-		TCLAP::CmdLine cmd("traffic-generator", ' ', PACKAGE_VERSION);
-		TCLAP::SwitchArg listenArg(
-			"l",
-			"listen",
-			"Run in server (consumer) mode, default = client.",
-			false);
-		TCLAP::ValueArg<std::string> difArg(
-			"d",
-			"dif",
-			"The name of the DIF to use, empty for any DIF, "
-			"default = empty (any DIF).",
+		CmdLine cmd("traffic-generator-server", ' ', PACKAGE_VERSION);
+
+		ValueArg<string> apName_a(
+			"n",
+			"apName",
+			"Application process name, default = traffic.generator.client.data.",
 			false,
-			"",
-			"string");
-		TCLAP::ValueArg<std::string> serverApnArg(
-			"",
-			"server-apn",
-			"Application process name for the server, "
-			"default = traffic.generator.server.",
+			"traffic.generator.client.data",
+			"string"
+		);
+		ValueArg<string> apInstance_a(
+			"i",
+			"apInstance",
+			"Application process instance, default = 1.",
+			false,
+			"1",
+			"string"
+		);
+		ValueArg<string> dstName_a(
+			"m",
+			"dstName",
+			"Destination Application process name, default = traffic.generator.server.",
 			false,
 			"traffic.generator.server",
-			"string");
-		TCLAP::ValueArg<std::string> serverApiArg(
-			"",
-			"server-api",
-			"Application process instance for the server, "
-			"default = 1.",
+			"string"
+		);
+		ValueArg<string> dstInstance_a(
+			"j",
+			"dstInstance",
+			"Destination Application process instance, default = 1.",
 			false,
 			"1",
-			"string");
-		TCLAP::ValueArg<std::string> clientApnArg(
-			"",
-			"client-apn",
-			"Application process name for the client, "
-			"default = traffic.generator.client.",
+			"string"
+		);
+		UnlabeledMultiArg<string> difs_a(
+			"difs",
+			"DIFs to use, empty for any DIF.",
 			false,
-			"traffic.generator.client",
-			"string");
-		TCLAP::ValueArg<std::string> clientApiArg(
-			"",
-			"client-api",
-			"Application process instance for the client, "
-			"default = 1.",
+			"string"
+		);
+
+		ValueArg<int> interval_duration_a(
+			"R",
+			"record_interval",
+			"Record statistics at intervals of X ms, default = 0 (do not record).",
 			false,
-			"1",
-			"string");
-		TCLAP::SwitchArg registrationArg(
+			0,
+			"int"
+		);
+
+		ValueArg<int> timeDif_a(
+			"t",
+			"timedif",
+			"Time difference in ns between client and server clocks, default = 0 ns.",
+			false,
+			0,
+			"int"
+		);
+
+		ValueArg<int> flowIdent_a(
+			"I",
+			"flowid",
+			"Unique flow identifier, default = 0.",
+			false,
+			0,
+			"int"
+		);
+
+		SwitchArg echo_a(
+			"e",
+			"echo",
+			"Request echo from server, default = false",
+			false
+		);
+		SwitchArg record_a(
 			"r",
-			"register",
-			"Register the application with the DIF, "
-			"default = false.",
-			false);
-		TCLAP::ValueArg<unsigned int> sizeArg(
-			"s",
-			"size",
-			"Size of the SDUs to send (bytes), default = 500.",
-			false,
-			500,
-			"unsigned integer");
-		TCLAP::ValueArg<unsigned long long> countArg(
-			"c",
-			"count",
-			"Number of SDUs to send, 0 = unlimited, "
-			"default = unlimited.",
-			false,
-			0,
-			"unsigned integer");
-		TCLAP::ValueArg<unsigned int> durationArg(
-			"",
-			"duration",
-			"Duration of the test (seconds), 0 = unlimited, "
-			"default = 60 s IF count is unlimited.",
-			false,
-			0,
-			"unsigned integer");
-		TCLAP::ValueArg<unsigned int> rateArg(
-			"",
-			"rate",
-			"Bitrate to send the SDUs, in kb/s, 0 = no limit, "
-			"default = no limit.",
-			false,
-			0,
-			"unsigned integer");
-		TCLAP::ValueArg<std::string> qoscubeArg(
-			"",
-			"qoscube",
-			"Specify the qos cube to use for flow allocation, "
-			"default = unreliable.",
-			false,
-			"unreliable",
-			"string");
-		TCLAP::ValueArg<std::string> distributionArg(
-			"",
- 			"distribution",
-			"Distribution, currently supports Constant Bitrate, "
-			"Constant Bitrate with Catchup (Warning, this is very "
-			"sensitive to clock drift) and poisson distributed "
-			"traffic: CBR, CBRC, poisson, default = CBR.",
-			false,
-			"CBR",
-			"string");
-		TCLAP::ValueArg<double> poissonMeanArg(
-			"",
-			"poissonmean",
-			"The mean value for the poisson distribution used to "
-			"generate interarrival times, default is 1.0.",
-			false,
-			1,
-			"double");
-		TCLAP::ValueArg<unsigned int> intervalArg(
-			"",
-			"interval",
-			"report statistics every x ms (server), "
-			"default = 1000.",
+			"record",
+			"Record response from server, default = false",
+			false
+		);
+		SwitchArg busywait_a(
+			"w",
+			"busywait",
+			"Busy wait between bursts or sleep, default = false (sleep)",
+			false
+		);
+
+		ValueArg<int> minPDU_a(
+			"p",
+			"minPDU",
+			"Minimum PDU size in B, default = 1000, min = 50",
 			false,
 			1000,
-			"unsigned integer");
-		TCLAP::SwitchArg sleepArg(
-			"",
-			"sleep",
-			"sleep instead of busywait between sending SDUs, "
-			"default = false.",
-			false);
-		TCLAP::ValueArg<std::string> csvPathArg(
-			"o",
-			"output-path",
-			"Write csv files per client to the specified directory, "
-			"default = no csv output.",
-			false,
-			"",
-			"string");
+			"int"
+		);
 
-		cmd.add(sleepArg);
-		cmd.add(registrationArg);
-		cmd.add(serverApnArg);
-		cmd.add(serverApiArg);
-		cmd.add(clientApnArg);
-		cmd.add(clientApiArg);
-		cmd.add(difArg);
-		cmd.add(qoscubeArg);
-		cmd.add(poissonMeanArg);
-		cmd.add(distributionArg);
-		cmd.add(sizeArg);
-		cmd.add(rateArg);
-		cmd.add(durationArg);
-		cmd.add(countArg);
-		cmd.add(intervalArg);
-		cmd.add(listenArg);
-		cmd.add(csvPathArg);
+		ValueArg<int> maxPDU_a(
+			"P",
+			"maxPDU",
+			"Maximum PDU size in B, default = 1000, min = 50",
+			false,
+			1000,
+			"int"
+		);
+
+		ValueArg<int> interPDU_a(
+			"v",
+			"interval",
+			"Time between PDUs in ns, default = 0",
+			false,
+			0,
+			"int"
+		);
+
+		ValueArg<int> flowIdent_a(
+			"I",
+			"flowid",
+			"Unique flow identifier, default = 0.",
+			false,
+			0,
+			"int"
+		);
+
+		// int duration, minOn, maxOn, minOff, maxOff;
+
+		ValueArg<int> duration_a(
+			"D",
+			"duration",
+			"Duration of the test in ms, default = 60000 (60s)",
+			false,
+			60000,
+			"int"
+		);
+
+		ValueArg<int> minOn_a(
+			"o",
+			"min_on",
+			"Min duration of ON interval in ms, default = 1000.",
+			false,
+			1000,
+			"int"
+		);
+
+		ValueArg<int> maxOn_a(
+			"O",
+			"max_on",
+			"Max duration of ON interval in ms, default = 1000.",
+			false,
+			1000,
+			"int"
+		);
+
+		ValueArg<int> minOff_a(
+			"f",
+			"min_off",
+			"Min duration of OFF interval in ms, default = 1000.",
+			false,
+			1000,
+			"int"
+		);
+
+		ValueArg<int> maxOff_a(
+			"F",
+			"max_off",
+			"Max duration of OFF interval in ms, default = 1000.",
+			false,
+			1000,
+			"int"
+		);
+
+
+		cmd.add(apName_a);
+		cmd.add(apInstance_a);
+		cmd.add(dstName_a);
+		cmd.add(dstInstance_a);
+		cmd.add(interval_duration_a);
+		cmd.add(timeDif_a);
+		cmd.add(flowIdent_a);
+		cmd.add(echo_a);
+		cmd.add(record_a);
+		cmd.add(busywait_a);
+		cmd.add(minPDU_a);
+		cmd.add(maxPDU_a);
+		cmd.add(interPDU_a);
+		cmd.add(duration_a);
+		cmd.add(minOn_a);
+		cmd.add(maxOn_a);
+		cmd.add(minOff_a);
+		cmd.add(maxOff_a);
+		cmd.add(difs_a);
 		cmd.parse(argc, argv);
 
-		listen		  = listenArg.getValue();
-		count		  = countArg.getValue();
-		registration	  = registrationArg.getValue();
-		size		  = sizeArg.getValue();
-		server_apn	  = serverApnArg.getValue();
-		server_api	  = serverApiArg.getValue();
-		client_apn	  = clientApnArg.getValue();
-		client_api	  = clientApiArg.getValue();
-		dif_name	  = difArg.getValue();
-		rate		  = rateArg.getValue();
-		duration	  = durationArg.getValue();
-		qos_cube	  = qoscubeArg.getValue();
-		distribution_type = distributionArg.getValue();
-		interval	  = intervalArg.getValue();
-		busy		  = !sleepArg.getValue();
-		poisson_mean	  = poissonMeanArg.getValue();
-		csv_path          = csvPathArg.getValue();
+		apName = apName_a.getValue();
+		apInstance = apInstance_a.getValue();
+		dstName = dstName_a.getValue();
+		dstInstance = dstInstance_a.getValue();
+		difs = difs_a.getValue();
+		interval_duration = interval_duration_a.getValue();
+		timeDif = timeDif_a.getValue();
+		flowIdent = flowIdent_a.getValue();
+		echo = echo_a.getValue();
+		record = record_a.getValue();
+		busywait = busywait_a.getValue();
+		minPDU = minPDU_a.getValue();
+		if (minPDU < 50) { minPDU = 50; }
+		maxPDU = maxPDU_a.getValue();
+		if (maxPDU < minPDU) { maxPDU = minPDU; }
+		interPDU = interPDU_a.getValue();
+		if (interPDU < 0) { interPDU = 0; }
+		duration = duration_a.getValue();
+		if (duration < 0) { duration = 0; }
+		minOn = minOn_a.getValue();
+		if (minOn < 1) { minOn = 1; }
+		maxOn = maxOn_a.getValue();
+		if (maxOn < minOn) { maxOn = minOn; }
+		minOff = minOff_a.getValue();
+		if (minOff < 1) { minOff = 1; }
+		maxOff = maxOff_a.getValue();
+		if (maxOn < minOff) { maxOn = minOff; }
 
-	} catch (TCLAP::ArgException &e) {
+	}
+	catch (ArgException &e) {
 		LOG_ERR("Error: %s for arg %d",
 			e.error().c_str(),
 			e.argId().c_str());
 		exit(1);
 	}
-	if (!count && !duration)
-		duration = 60; //run a 60 second test
+
 	try {
 		rina::initialize("INFO", "");
 
-		if (listen) {
-			// Server mode
-			server s(server_apn, server_api);
-			s.register_ap(dif_name);
-			s.setInterval(true, interval*1000);
-			s.setRecordRange(10);
-			s.run();
-		} else {
-			// Client mode
-			client c(client_apn, client_api, server_apn, server_api, qos_cube);
-			/* FIXME: "" means any DIF, should be cleaned up */
-			if (registration)
-				c.register_ap(dif_name);
-			c.run();
-			int fd = c.request_flow(server_apn,
-						server_api,
-						qos_cube);
-			if (distribution_type == "CBR" ||
-			    distribution_type == "cbr")
-				c.single_cbr_test(size,
-						  count,
-						  duration*1000,
-						  rate,
-						  busy,
-						  fd);
-			if (distribution_type == "CBRC" ||
-			    distribution_type == "cbrc")
-				c.single_cbrc_test(size,
-						   count,
-						   duration*1000,
-						   rate,
-						   busy,
-						   fd);
-			if (distribution_type == "poisson")
-				c.single_poisson_test(size,
-						      count,
-						      duration*1000,
-						      rate,
-						      busy,
-						      poisson_mean,
-						      fd);
-		}
-	} catch (rina::Exception& e) {
+		voice_client c(apName, apInstance, dstName, dstInstance, qos, timeDif, flowIdent, echo, record, busywait);
+		c.register_ap(difs);
+		c.setPDUSize(minPDU, maxPDU);
+		c.setInterval(interPDU);
+		c.setRecordInterval(interval_duration > 0, interval_duration);
+		c.setON(minOn, maxOn);
+		c.setON(minOff, maxOff);
+		c.run();
+	}
+	catch (rina::Exception& e) {
 		LOG_ERR("%s", e.what());
 		return EXIT_FAILURE;
 	}
