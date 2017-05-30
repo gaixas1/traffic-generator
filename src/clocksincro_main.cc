@@ -9,16 +9,16 @@
 #include "tclap/CmdLine.h"
 
 #include "config.h"
-#include "server.h"
+#include "clocksincro.h"
 
 using namespace std;
 using namespace TCLAP;
 
 int main(int argc, char * argv[]) {
-	string	apName, apInstance;
+	string	apName, apInstance, dstName, dstInstance;
 	vector<string> difs;
-	int		interval_duration;
-	int		latency_range;
+	vector<QoSpair> qos;
+	int maxMsgs, maxSleep;
 
 	try {
 		CmdLine cmd("traffic-generator-server", ' ', PACKAGE_VERSION);
@@ -39,6 +39,22 @@ int main(int argc, char * argv[]) {
 			"1",
 			"string"
 		);
+		ValueArg<string> dstName_a(
+			"m",
+			"dstName",
+			"Destination Application process name, default = \"\" (server mode).",
+			false,
+			"",
+			"string"
+		);
+		ValueArg<string> dstInstance_a(
+			"j",
+			"dstInstance",
+			"Destination Application process instance, default = 1.",
+			false,
+			"1",
+			"string"
+		);
 		UnlabeledMultiArg<string> difs_a(
 			"difs",
 			"DIFs to use, empty for any DIF.",
@@ -46,38 +62,43 @@ int main(int argc, char * argv[]) {
 			"string"
 		);
 
-		ValueArg<int> interval_duration_a(
-			"R",
-			"record_interval",
-			"Record statistics at intervals of X ms, default = 0 (do not record).",
-			false,
-			0,
-			"int"
-		);
-
-		ValueArg<int> latency_range_a(
-			"L",
-			"latency_range",
-			"Size of latency ranges when recording in ms, default = 10ms, min 1ms.",
+		ValueArg<int> maxMsgs_a(
+			"M",
+			"max_msgs",
+			"Number of messages, default = 10 ns.",
 			false,
 			10,
 			"int"
 		);
 
+		ValueArg<int> maxSleep_a(
+			"S",
+			"max_sleep",
+			"Max time in ms between calls, default = 1 ms.",
+			false,
+			1,
+			"int"
+		);
+
 		cmd.add(apName_a);
 		cmd.add(apInstance_a);
-		cmd.add(interval_duration_a);
-		cmd.add(latency_range_a);
+		cmd.add(dstName_a);
+		cmd.add(dstInstance_a);
+		cmd.add(maxMsgs_a);
+		cmd.add(maxSleep_a);
 		cmd.add(difs_a);
 		cmd.parse(argc, argv);
 
 		apName = apName_a.getValue();
 		apInstance = apInstance_a.getValue();
 		difs = difs_a.getValue();
-		interval_duration = interval_duration_a.getValue();
-		latency_range = latency_range_a.getValue();
-		if (latency_range <= 0) {
-			latency_range = 1;
+		maxMsgs = maxMsgs_a.getValue();
+		if (maxMsgs <= 0) {
+			maxMsgs = 1;
+		}
+		maxSleep = maxSleep_a.getValue();
+		if (maxSleep <= 0) {
+			maxSleep = 1;
 		}
 
 	} catch (ArgException &e) {
@@ -89,12 +110,17 @@ int main(int argc, char * argv[]) {
 
 	try {
 		rina::initialize("INFO", "");
-
-		server s(apName, apInstance);
-		s.register_ap(difs);
-		s.setRecordInterval(interval_duration > 0, interval_duration);
-		s.setRecordRange(latency_range);
-		s.run();
+		if (dstName != "") {
+			clocksincro_server s(apName, apInstance);
+			s.register_ap(difs);
+			s.run();
+		} else {
+			clocksincro_client c(apName, apInstance, dstName, dstInstance, qos);
+			c.register_ap(difs);
+			c.setMaxMsg(maxMsgs);
+			c.setMaxSleep(maxSleep);
+			c.run();
+		}
 	} catch (rina::Exception& e) {
 		LOG_ERR("%s", e.what());
 		return EXIT_FAILURE;
