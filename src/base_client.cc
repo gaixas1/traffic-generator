@@ -37,6 +37,10 @@ void base_client::setPDUSize(int min, int max) {
 void base_client::setInterval(int ns) {
 	nsPDU = ns;
 }
+void base_client::setRecordInterval(bool stat, int ms) {
+	print_interval = stat;
+	stats_interval = ms;
+}
 
 void base_client::handle_flow(int port_id, int fd) {
 	srand(time(0));
@@ -66,7 +70,7 @@ void base_client::handle_flow(int port_id, int fd) {
 
 	thread * echo_t = nullptr;
 	if (doEcho) {
-		echo_t = new thread(echo_listener, fd, flowIdent);
+		echo_t = new thread(&echo_listener, fd, flowIdent, print_interval, stats_interval);
 	}
 
 	bool result = flow(fd, buffer);
@@ -81,4 +85,11 @@ void base_client::handle_flow(int port_id, int fd) {
 	}
 
 	release_flow(port_id);
+}
+
+
+bool echo_listener(int fd, int flowIdent, bool interval_stats, int interval_ms) {
+
+	//stats RTT + 
+	return true;
 }

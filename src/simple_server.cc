@@ -12,7 +12,7 @@
  */
 
 #include <errno.h>
-#include <boost/thread.hpp>
+#include <thread>
 
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "SIMPLE_SERVER"
@@ -27,6 +27,10 @@
 
 using namespace std;
 using namespace rina;
+
+void caller_handle(simple_server * ob, int portId, int fd) {
+	ob->handle_flow(portId, fd);
+}
 
 void simple_server::run() {
 	for(;;) {
@@ -46,8 +50,8 @@ void simple_server::run() {
 			case FLOW_ALLOCATION_REQUESTED_EVENT: {
 				rina::FlowInformation flow = ipcManager->allocateFlowResponse( *dynamic_cast<FlowRequestEvent*>(event), 0, true);
 				LOG_INFO("New flow allocated [port-id = %d]", flow.portId);
-				boost::thread t(&server::handle_flow, this, flow.portId, flow.fd);
-				t.detach();
+
+				thread(&caller_handle, this, flow.portId, flow.fd);
 				break;
 			}
 			case FLOW_DEALLOCATED_EVENT: {

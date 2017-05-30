@@ -10,7 +10,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace rina;
 
-void server::setInterval(bool stat, int ms) {
+void server::setRecordInterval(bool stat, int ms) {
 	print_interval = stat;
 	stats_interval = ms;
 }

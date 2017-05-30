@@ -12,10 +12,11 @@ public:
 
 	void setPDUSize(int min, int max);
 	void setInterval(int ns);
+	void setRecordInterval(bool stat, int ms);
 
-protected:
 	void handle_flow(int port_id, int fd);
 
+protected:
 	virtual bool flow(int fd, char * buffer);
 
 	int flowIdent;
@@ -23,4 +24,9 @@ protected:
 	int MIN_PDU, DIF_PDU, nsPDU;
 	int MIN_DATA;
 	long timeDIF;
+	bool print_interval;
+	int stats_interval;
 };
+
+
+bool echo_listener(int fd, int flowIdent, bool interval_stats, int interval_ms);

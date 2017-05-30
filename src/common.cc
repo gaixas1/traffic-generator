@@ -22,9 +22,3 @@ bool read_data(int fd, char * buffer) {
 	} while (padding < data->size);
 	return true;
 }
-
-
-
-bool echo_listener(int fd, int flowIdent) {
-	return true;
-}
