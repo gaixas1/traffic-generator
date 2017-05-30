@@ -1,7 +1,6 @@
 #pragma once
 #include "simple_client.h"
 
-
 class base_client : public simple_client {
 public:
 	base_client(const std::string& apn, const std::string& api, 
@@ -29,4 +28,4 @@ protected:
 };
 
 
-bool echo_listener(int fd, int flowIdent, bool interval_stats, int interval_ms);
+bool echo_listener(int fd, std::string filename, bool interval_stats, int interval_ms);

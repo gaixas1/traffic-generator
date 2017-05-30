@@ -70,7 +70,8 @@ void base_client::handle_flow(int port_id, int fd) {
 
 	thread * echo_t = nullptr;
 	if (doEcho) {
-		echo_t = new thread(&echo_listener, fd, flowIdent, print_interval, stats_interval);
+		string filename = "CLIENT_" + name + "_" + instance + "_" + to_string(data->flowIdent);
+		echo_t = new thread(&echo_listener, fd, filename, print_interval, stats_interval);
 	}
 
 	bool result = flow(fd, buffer);
@@ -87,9 +88,57 @@ void base_client::handle_flow(int port_id, int fd) {
 	release_flow(port_id);
 }
 
+bool echo_listener(int fd, string filename, bool interval_stats, int interval_ms) {
+	char buffer[BUFF_SIZE];
+	dataSDU * data = (dataSDU*)buffer;
 
-bool echo_listener(int fd, int flowIdent, bool interval_stats, int interval_ms) {
+	ofstream log;
+	log.open(filename);
+	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\s;bps;Success prob.;Min RTT.;Min RTT.;Avg RTT.;Max RTT.;Std.Dev.RTT" << endl;
 
+	auto interval = milliseconds(interval_ms);
+
+	int currentSeq = 0;
+
+	stats full_stats(high_resolution_clock::now(), currentSeq);
+	stats partial_stats(high_resolution_clock::now(), currentSeq);
+	int i = 0;
+
+	for (;;) {
+		if (!read_data(fd, buffer)) {
+			return false;
+		}
+
+		if (data->type == DTYPE_DATA) {
+			long long rtt = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - data->ping_time;
+
+			full_stats.sample(data->size, rtt);
+			currentSeq = data->seqId;
+
+			if (interval_stats) {
+				partial_stats.sample(data->size, rtt);
+
+				auto t1 = high_resolution_clock::now();
+				if (t1 < partial_stats.t0 + interval) {
+					log << "Interval;" << i++ << ";";
+					partial_stats.print(high_resolution_clock::now(), currentSeq, log);
+					partial_stats = stats(t1, currentSeq);
+				}
+			}
+		}
+		else if (data->type == DTYPE_FIN) {
+			break;
+		}
+		else {
+			LOG_ERR("RECEIVED INVALID MESSAGE TYPE");
+			return false;
+		}
+	}
+
+	log << "FIN;" << i << ";";
+	full_stats.print(high_resolution_clock::now(), currentSeq, log);
+
+	log.close();
 	//stats RTT + 
 	return true;
 }

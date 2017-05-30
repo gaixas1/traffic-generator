@@ -1,14 +1,9 @@
 #pragma once
 #include <chrono>
-#ifndef RINA_PREFIX
-	#define RINA_PREFIX "COMMON"
-#endif // !RINA_PREFIX
-#include <librina/librina.h>
-#include <librina/logs.h>
+#include <fstream>
 
 using namespace std;
 using namespace std::chrono;
-using namespace rina;
 
 #define BUFF_SIZE 1500
 
@@ -29,3 +24,16 @@ struct dataSDU {
 };
 
 bool read_data(int fd, char * buffer);
+
+struct stats {
+	time_point<steady_clock> t0;
+	int seq0;
+	long pdu_num;
+	long long pdu_data;
+	double m, S, n;
+	long long minLat, maxLat;
+
+	stats(time_point<steady_clock> _t0, int _seq0);
+	void sample(int len, long long lat);
+	void print(time_point<steady_clock> t1, int seq1, ofstream & log);
+};

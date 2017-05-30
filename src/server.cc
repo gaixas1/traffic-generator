@@ -48,10 +48,13 @@ void server::handle_flow(int port_id, int fd) {
 
 
 	ofstream log, logrecord;
-	string filename = name + "_" + instance + "_" + to_string(data->flowIdent);
+	string filename = "SERVER_"+name + "_" + instance + "_" + to_string(data->flowIdent);
 	log.open(filename);
 	log << "Initial Latency = " << (data->pong_time - data->ping_time) << endl;
 
+	
+	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\s;bps;Success prob.;Min Lat.;Min Lat.;Avg Lat.;Max Lat.;Std.Dev.Lat" << endl;
+	
 
 	if (data->record != 0) {
 		filename = name + "_" + instance + "_record_" + to_string(data->flowIdent);
@@ -71,41 +74,6 @@ void server::handle_flow(int port_id, int fd) {
 
 	release_flow(port_id);
 }
-
-struct stats {
-	time_point<steady_clock> t0;
-	int seq0;
-	long pdu_num;
-	long long pdu_data;
-	double m, S, n;
-	long long minLat, maxLat;
-
-	stats(time_point<steady_clock> _t0, int _seq0) : t0(_t0), seq0(_seq0), pdu_num(0), pdu_data(0), m(0), S(0), n(0), minLat(LLONG_MAX), maxLat(LLONG_MIN) {}
-	void sample(int len, long long lat) {
-		pdu_num++;
-		pdu_data += len;
-		if (minLat > lat) { minLat = lat; }
-		if (maxLat < lat) { maxLat = lat; }
-		double m0 = m;
-		n = n + 1;
-		m = m + (lat - m) / n;
-		S = S + (lat - m)*(lat - m0);
-	}
-	void print(time_point<steady_clock> t1, int seq1, ofstream & log) {
-		long long duration = duration_cast<milliseconds>( t1 - t0).count();
-		double rate_num = (double)pdu_num * 1000.0 / (double)duration;
-		double rate_data = (double)pdu_data * 8000.0 / (double)duration;
-		int total = seq1 - seq0;
-		double received = (double)pdu_num / (double)total;
-		log << t1.time_since_epoch << "\tDuration" << duration << " ms"
-			<< "\tPDUs" << pdu_num << "(" << pdu_data << " B)"
-			<< "\tPDUs" << rate_num << " PDU/s (" << rate_data << " bps)"
-			<< "\tSuccess prob." << received
-			<< "\tLatency" << minLat << " / " << m << " / " << maxLat << " ms | Std dev " <<(sqrt(S / n))
-			<< endl;
-	}
-};
-
 
 bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record, ofstream & recordlog) {
 	dataSDU * data = (dataSDU*)&buffer;
@@ -167,7 +135,7 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 
 				auto t1 = high_resolution_clock::now();
 				if (t1 < partial_stats.t0 + interval) {
-					log << "Interval " << i++ << " - ";
+					log << "Interval;" << i++ << ";";
 					partial_stats.print(high_resolution_clock::now(), currentSeq, log);
 					partial_stats = stats(t1, currentSeq);
 				}
@@ -188,7 +156,7 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 		return false;
 	}
 
-	log << "Flow ended - ";
+	log << "FIN;" << i << ";";
 	full_stats.print(high_resolution_clock::now(), currentSeq, log);
 
 	return true;
