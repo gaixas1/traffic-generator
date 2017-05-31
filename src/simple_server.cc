@@ -28,10 +28,6 @@
 using namespace std;
 using namespace rina;
 
-void caller_handle(simple_server * ob, int portId, int fd) {
-	ob->handle_flow(portId, fd);
-}
-
 void simple_server::run() {
 	for(;;) {
 		IPCEvent * event = ipcEventProducer->eventWait();
@@ -51,7 +47,7 @@ void simple_server::run() {
 				rina::FlowInformation flow = ipcManager->allocateFlowResponse( *dynamic_cast<FlowRequestEvent*>(event), 0, true);
 				LOG_INFO("New flow allocated [port-id = %d]", flow.portId);
 
-				thread(&caller_handle, this, flow.portId, flow.fd);
+				thread(&simple_server::handle_flow, this, flow.portId, flow.fd);
 				break;
 			}
 			case FLOW_DEALLOCATED_EVENT: {

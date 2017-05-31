@@ -15,7 +15,7 @@ using namespace std;
 using namespace TCLAP;
 
 int main(int argc, char * argv[]) {
-	string	apName, apInstance, dstName, dstInstance;
+	string	apName, apInstance, dstName, dstInstance, qos_file;
 	vector<string> difs;
 	vector<QoSpair> qos;
 	int		interval_duration;
@@ -58,6 +58,14 @@ int main(int argc, char * argv[]) {
 			"Destination Application process instance, default = 1.",
 			false,
 			"1",
+			"string"
+		);
+		ValueArg<string> qos_file_a(
+			"Q",
+			"qosfile",
+			"File containing the QoS requirements (required)",
+			false,
+			"",
 			"string"
 		);
 		UnlabeledMultiArg<string> difs_a(
@@ -181,6 +189,7 @@ int main(int argc, char * argv[]) {
 		cmd.add(apInstance_a);
 		cmd.add(dstName_a);
 		cmd.add(dstInstance_a);
+		cmd.add(qos_file_a);
 		cmd.add(interval_duration_a);
 		cmd.add(timeDif_a);
 		cmd.add(flowIdent_a);
@@ -219,6 +228,11 @@ int main(int argc, char * argv[]) {
 		if (minburst < 1) { minburst = 1; }
 		maxburst = maxburst_a.getValue();
 		if (maxburst < minburst) { maxburst = minburst; }
+
+		qos_file = qos_file_a.getValue();
+		if (qos_file != "") {
+			parseQoSRequirements(qos, qos_file);
+		}
 
 	}
 	catch (ArgException &e) {

@@ -16,6 +16,7 @@
 #endif // !RINA_PREFIX
 
 #include "simple_ap.h"
+#include <fstream>
 
 #include <librina/logs.h>
 #include <librina/librina.h>
@@ -167,4 +168,21 @@ int simple_ap::release_flow(const int port_id) {
 /* TODO: implement this stub */
 int simple_ap::release_all_flows() {
 	return 0;
+}
+
+
+
+bool parseQoSRequirements(vector<QoSpair> & qos, string filename) {
+	ifstream f(filename);
+	if (!f.is_open()) {
+		return false;
+	}
+	string a, b;
+	while (f >> a >> b) {
+		if (a != "" && b != "") {
+			qos.push_back(QoSpair(a, b));
+		}
+	}
+	f.close();
+	return true;
 }

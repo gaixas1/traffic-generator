@@ -28,8 +28,11 @@ struct port_fd {
 struct QoSpair {
 	string param;
 	string value;
+	QoSpair(string _param, string _value)
+		:param(_param), value(_value) {}
 };
 
+bool parseQoSRequirements(vector<QoSpair> & qos, string filename);
 
 class simple_ap {
 public:

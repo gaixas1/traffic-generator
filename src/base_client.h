@@ -21,7 +21,6 @@ protected:
 	int flowIdent;
 	bool doEcho, doRecord, busyWait;
 	int MIN_PDU, DIF_PDU, nsPDU;
-	int MIN_DATA;
 	long timeDIF;
 	bool print_interval;
 	int stats_interval;
