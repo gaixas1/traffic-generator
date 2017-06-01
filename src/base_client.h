@@ -28,3 +28,4 @@ protected:
 
 
 bool echo_listener(int fd, std::string filename, bool interval_stats, int interval_ms);
+bool fin_listener(int fd);

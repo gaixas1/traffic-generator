@@ -91,7 +91,10 @@ int main(int argc, char * argv[]) {
 
 		apName = apName_a.getValue();
 		apInstance = apInstance_a.getValue();
+		dstName = dstName_a.getValue();
+		dstInstance = dstInstance_a.getValue();
 		difs = difs_a.getValue();
+
 		maxMsgs = maxMsgs_a.getValue();
 		if (maxMsgs <= 0) {
 			maxMsgs = 1;

@@ -79,6 +79,8 @@ void base_client::handle_flow(int port_id, int fd) {
 	if (doEcho) {
 		echo_t->join();
 		delete echo_t;
+	} else {
+		result &= fin_listener(fd);
 	}
 
 	if (!result) {
@@ -141,4 +143,22 @@ bool echo_listener(int fd, string filename, bool interval_stats, int interval_ms
 	log.close();
 	//stats RTT + 
 	return true;
+}
+
+bool fin_listener(int fd) {
+	char buffer[BUFF_SIZE];
+	dataSDU * data = (dataSDU*)buffer;
+
+	for (;;) {
+		if (!read_data(fd, buffer)) {
+			LOG_ERR("FAILURE READING DATA");
+			return false;
+		}
+		if (data->type == DTYPE_FIN) {
+			return true;
+		} else {
+			LOG_ERR("RECEIVED INVALID MESSAGE TYPE");
+			return false;
+		}
+	}
 }

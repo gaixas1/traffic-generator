@@ -148,17 +148,9 @@ int main(int argc, char * argv[]) {
 			"int"
 		);
 
-		ValueArg<int> flowIdent_a(
-			"I",
-			"flowid",
-			"Unique flow identifier, default = 0.",
-			false,
-			0,
-			"int"
-		);
 
 		ValueArg<int> data_a(
-			"p",
+			"D",
 			"data",
 			"kB of data to send, default = 1000",
 			false,

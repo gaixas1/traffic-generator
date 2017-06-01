@@ -148,15 +148,6 @@ int main(int argc, char * argv[]) {
 			"int"
 		);
 
-		ValueArg<int> flowIdent_a(
-			"I",
-			"flowid",
-			"Unique flow identifier, default = 0.",
-			false,
-			0,
-			"int"
-		);
-
 		ValueArg<int> duration_a(
 			"D",
 			"duration",
