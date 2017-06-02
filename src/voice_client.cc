@@ -7,6 +7,9 @@
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "VOICE_CLIENT"
 #endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
 #include "common.h"
 
 using namespace std;

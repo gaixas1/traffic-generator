@@ -6,9 +6,14 @@
 #include <time.h>
 #include <stdexcept>
 
+
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "DATA_CLIENT"
 #endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
+
 #include "common.h"
 
 using namespace std;

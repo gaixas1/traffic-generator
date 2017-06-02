@@ -1,11 +1,21 @@
 #include "common.h"
 
+
+#ifndef RINA_PREFIX
+#define RINA_PREFIX "COMMON"
+#endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
+
 using namespace std;
 using namespace std::chrono;
+using namespace rina;
 
 bool read_data(int fd, char * buffer) {
 	dataSDU * data = (dataSDU*)&buffer;
 	int padding = 0;
+	int ret;
 	do {
 		ret = read(fd, buffer, sizeof(int)-padding);
 		if (ret < 0) {

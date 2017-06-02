@@ -7,9 +7,18 @@
 #include <chrono>
 #include <thread>
 
+
+#ifndef RINA_PREFIX
+#define RINA_PREFIX "CLOCKSINCRO"
+#endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
+
 using namespace std;
 using namespace std::chrono;
 using namespace std::this_thread;
+using namespace rina;
 
 struct data_t {
 	long ping, pong;

@@ -11,15 +11,17 @@
  * Refer to the accompanying LICENSE file for further information
  */
 
+
+
 #ifndef RINA_PREFIX
-#define RINA_PREFIX "SIMPLE-APP"
+#define RINA_PREFIX "SIMPLE_APP"
 #endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
 
 #include "simple_ap.h"
 #include <fstream>
-
-#include <librina/logs.h>
-#include <librina/librina.h>
 
 
 using namespace std;

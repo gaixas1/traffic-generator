@@ -1,9 +1,13 @@
 #include "server.h"
 #include <fstream>
 
+
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "SERVER"
 #endif // !RINA_PREFIX
+
+#include <librina/librina.h>
+#include <librina/logs.h>
 #include "common.h"
 
 using namespace std;
