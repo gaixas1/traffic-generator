@@ -10,11 +10,11 @@ bin_PROGRAMS                       =
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT =
 
 rina_tgen_SOURCES  =				\
-	simple_ap.cc		simple_ap.h	\
-	server.cc		server.h	\
-	client.cc		client.h	\
-        timeutils.c		timeutils.h	\
-        main.cc
+	clocksincro.cc		clocksincro.h	\
+	simple_server.cc		simple_server.h	\
+	simple_client.cc		simple_client.h	\
+    simple_ap.cc		simple_ap.h	\
+    clocksincro_main.cc
 
 rina_tgen_LDADD    = $(LIBRINA_LIBS)		\
 		     -lrt 

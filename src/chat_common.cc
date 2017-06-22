@@ -1,8 +1,15 @@
 #include "chat_common.h"
+#include <string>
+
+using namespace std;
+
+
+baseMsg::baseMsg(int _type, int _size) :
+	type(_type), size(_size) {}
 
 bool read_data(int fd, char * buffer) {
 	baseMsg * data = (baseMsg*)&buffer;
-	data->size = sizeof(int);
+	data->size = 2*sizeof(int);
 	int padding = 0;
 	int ret;
 
@@ -15,4 +22,13 @@ bool read_data(int fd, char * buffer) {
 		padding += ret;
 	}
 	return true;
+}
+
+
+string getParameter(string m) {
+	return "";
+}
+
+string getSecondParameter(string m) {
+	return "";
 }
