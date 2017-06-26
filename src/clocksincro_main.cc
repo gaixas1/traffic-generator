@@ -113,7 +113,7 @@ int main(int argc, char * argv[]) {
 
 	try {
 		rina::initialize("INFO", "");
-		if (dstName != string("")) {
+		if (dstName != string("") || dstName.size() < 1) {
 			cout << "Clock server | " << apName << ":" << apInstance <<endl;
 			clocksincro_server s(apName, apInstance);
 			s.register_ap(difs);
