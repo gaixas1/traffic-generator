@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
 			"n",
 			"apName",
 			"Application process name, default = traffic.generator.server.",
-			false,
+			true,
 			"traffic.generator.server",
 			"string"
 		);
@@ -114,12 +114,12 @@ int main(int argc, char * argv[]) {
 	try {
 		rina::initialize("INFO", "");
 		if (dstName != "") {
-			cout << "Clock server"<<endl;
+			cout << "Clock server | " << apName << ":" << apInstance <<endl;
 			clocksincro_server s(apName, apInstance);
 			s.register_ap(difs);
 			s.run();
 		} else {
-			cout << "Clock client"<<endl;
+			cout << "Clock client | " << apName << ":" << apInstance << " => " << dstName << ":" << dstInstance  <<endl;
 			clocksincro_client c(apName, apInstance, dstName, dstInstance, qos);
 			c.register_ap(difs);
 			c.setMaxMsg(maxMsgs);
