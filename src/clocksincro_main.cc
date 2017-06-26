@@ -114,10 +114,12 @@ int main(int argc, char * argv[]) {
 	try {
 		rina::initialize("INFO", "");
 		if (dstName != "") {
+			cout << "Clock server"<<endl;
 			clocksincro_server s(apName, apInstance);
 			s.register_ap(difs);
 			s.run();
 		} else {
+			cout << "Clock client"<<endl;
 			clocksincro_client c(apName, apInstance, dstName, dstInstance, qos);
 			c.register_ap(difs);
 			c.setMaxMsg(maxMsgs);
