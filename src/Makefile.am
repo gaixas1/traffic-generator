@@ -9,24 +9,24 @@ DISTCLEANFILES                     =
 bin_PROGRAMS                       =
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT =
 
-rina_tgen_SOURCES  =				\
+rina_clocksincro_SOURCES  =				\
 	clocksincro.cc		clocksincro.h	\
 	simple_server.cc		simple_server.h	\
 	simple_client.cc		simple_client.h	\
     simple_ap.cc		simple_ap.h	\
     clocksincro_main.cc
 
-rina_tgen_LDADD    = $(LIBRINA_LIBS)		\
+rina_clocksincro_LDADD    = $(LIBRINA_LIBS)		\
 		     -lrt 
 
-rina_tgen_CPPFLAGS =				\
+rina_clocksincro_CPPFLAGS =				\
 	$(LIBRINA_CFLAGS)			\
 	$(CPPFLAGS_EXTRA)			\
         $(BOOST_CPPFLAGS)			\
 	-I$(srcdir)/tclap
 
-rina_tgen_CXXFLAGS =				\
+rina_clocksincro_CXXFLAGS =				\
 	$(CPPFLAGS_EXTRA)
 
-bin_PROGRAMS                       += rina-tgen
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-tgen
+bin_PROGRAMS                       += rina-clocksincro
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-clocksincro
