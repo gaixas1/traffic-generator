@@ -4,7 +4,7 @@
 # Written by: Francesco Salvestrini <f DOT salvestrini AT nextworks DOT it>
 #
 
-AC_INIT([RINA Traffic Generator],[m4_esyscmd(build-aux/git-version-gen .tarball-version)],[dimitri.staessens@intec.ugent.be],[rina-tgen],[http://github.com/irati/traffic-generator])
+AC_INIT([RINA - traffic],[m4_esyscmd(build-aux/git-version-gen .tarball-version)],[gaixas1@ac.upc.edu],[rina-clocksincro],[http://github.com/gaixas1/traffic-generator])
 
 AC_PREREQ([2.69])
 
