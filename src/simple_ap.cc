@@ -87,7 +87,7 @@ bool simple_ap::unregister_ap() {
 
 /* FIXME: implement this stub */
 bool simple_ap::unregister_ap(const string& dif_name) {
-	throw exception("Not Implemented");
+	//throw exception("Not Implemented");
 	return true;
 }
 
