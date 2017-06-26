@@ -41,6 +41,7 @@ bool readBuffer(int fd, char * buffer, int i) {
 
 
 void clocksincro_server::handle_flow(int port_id, int fd) {
+	cout << "Clocksincro server - Handle flow "<< port_id << ", "<< fd<<endl;
 	data_t data;
 	char * buffer = (char*)& data;
 
@@ -63,6 +64,7 @@ void clocksincro_server::handle_flow(int port_id, int fd) {
 
 
 void clocksincro_client::handle_flow(int port_id, int fd) {
+	cout << "Clocksincro client - Handle flow "<< port_id << ", "<< fd<<endl;
 	data_t data;
 	char * buffer = (char*)& data;
 	srand(time(0));
