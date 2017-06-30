@@ -142,9 +142,9 @@ int main(int argc, char * argv[]) {
 		ValueArg<int> interPDU_a(
 			"v",
 			"interval",
-			"Time between PDUs in ns, default = 0",
+			"Time between PDUs in ns, default = 1",
 			false,
-			0,
+			1,
 			"int"
 		);
 
@@ -232,7 +232,7 @@ int main(int argc, char * argv[]) {
 		maxPDU = maxPDU_a.getValue();
 		if (maxPDU < minPDU) { maxPDU = minPDU; }
 		interPDU = interPDU_a.getValue();
-		if (interPDU < 0) { interPDU = 0; }
+		if (interPDU <= 1) { interPDU = 1; }
 		duration = duration_a.getValue();
 		if (duration < 0) { duration = 0; }
 		minOn = minOn_a.getValue();
@@ -264,9 +264,10 @@ int main(int argc, char * argv[]) {
 		c.register_ap(difs);
 		c.setPDUSize(minPDU, maxPDU);
 		c.setInterval(interPDU);
+		c.setDuration(duration);
 		c.setRecordInterval(interval_duration > 0, interval_duration);
 		c.setON(minOn, maxOn);
-		c.setON(minOff, maxOff);
+		c.setOFF(minOff, maxOff);
 		c.run();
 	}
 	catch (rina::Exception& e) {

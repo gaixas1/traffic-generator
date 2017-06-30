@@ -58,20 +58,34 @@ void voice_client::setDuration(int ms) {
 }
 
 bool voice_client::flow(int fd, char * buffer) {
+	cout << "Voice Client - Flow "<< fd <<endl;
+	
 	dataSDU * data = (dataSDU*)buffer;
 	nanoseconds timeD(timeDIF);
 
 	data->type = DTYPE_DATA;
 
-	sleep_for(milliseconds(rand() % MIN_OFF));
+	sleep_for(milliseconds(MIN_OFF > 0? rand() % MIN_OFF : 0));
 
+	if(nsPDU <= 0) { nsPDU = 1; }
+	//cout << "Interval " << nsPDU << " ns"<<endl;
+	//cout << "ON  Min " << MIN_ON << " DIF " << DIF_ON<<endl;
+	//cout << "OFF Min " << MIN_OFF << " DIF " << DIF_OFF<<endl;
+	cout << "DURATION  :: " << duration << "ms"<<endl;
 	auto tend = system_clock::now() + milliseconds(duration);
 	do {
-		int remaining = (MIN_ON + rand() % DIF_ON) * 1000 / nsPDU;
+		cout << "VOICE -- ON" <<endl;
+		int remaining = MIN_ON;
+		if(DIF_ON > 0){
+			remaining += rand() % DIF_ON;
+		}
+		remaining = remaining * 1000000 / nsPDU;
+		
 		auto t = system_clock::now() + timeD;
 
 		while (remaining > 0) {
-			data->size = MIN_PDU + rand() % DIF_PDU;
+			data->type = DTYPE_DATA;
+			data->size = MIN_PDU + (DIF_PDU > 0? rand() % DIF_PDU : 0);
 			data->seqId++;
 			data->ping_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch() - timeD).count();
 
@@ -91,6 +105,9 @@ bool voice_client::flow(int fd, char * buffer) {
 			}
 			t += timeD;
 		}
-		sleep_for(milliseconds(MIN_OFF + rand() % DIF_OFF));
+		cout << "VOICE -- OFF" <<endl;
+		sleep_for(milliseconds(MIN_OFF + (DIF_OFF > 0? rand() % DIF_OFF : 0) ));
 	} while (system_clock::now() <= tend);
+	cout << "VOICE -- END" <<endl;
+	return true;
 }

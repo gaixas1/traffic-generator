@@ -22,6 +22,7 @@ using namespace rina;
 
 struct data_t {
 	long ping, pong;
+	int seq;
 };
 
 bool readBuffer(int fd, char * buffer, int i) {
@@ -58,7 +59,10 @@ void clocksincro_server::handle_flow(int port_id, int fd) {
 			release_flow(port_id);
 			return;
 		}
+		
+		if(data.seq <= 0) break;
 	}
+	cout << "Clocksincro server - Handle flow "<< port_id << ", "<< fd << " -- END "<<endl;
 }
 
 
@@ -75,6 +79,7 @@ void clocksincro_client::handle_flow(int port_id, int fd) {
 	for (int i = 0; i < MAX_MSG; i++) {
 		int ms = rand() % MAX_SLEEP;
 		sleep_for(milliseconds(ms));
+		data.seq = MAX_MSG - i - 1; 
 		data.ping = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
 		if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
 			LOG_ERR("FAILED AT ECHO - ABORT FLOW");
@@ -86,10 +91,12 @@ void clocksincro_client::handle_flow(int port_id, int fd) {
 			long lat = (t1 - data.ping) / 2;
 			if (lat < minLat) { minLat = lat; }
 
-			long dif = (data.pong - data.ping);
-			if (dif < minDif) { minDif = dif; }
+			long difa = (data.pong - data.ping);
+			long difb = (t1 - data.pong);
+			if (difa < minDif) { minDif = difa; }
+			if (difb < minDif) { minDif = difb; }
 
-			cout << (minLat-minDif) << endl;
+			//cout << (minLat-minDif) << endl;
 		} else {
 			LOG_ERR("FAILED AT READ - ABORT FLOW");
 			break;

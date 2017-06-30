@@ -24,22 +24,31 @@
 #include "simple_server.h"
 #include "timeutils.h"
 
+#include <iostream>
+
 
 using namespace std;
 using namespace rina;
 
 void simple_server::run() {
+	cout << "- Server run"<<endl;
 	for(;;) {
-		IPCEvent * event = ipcEventProducer->eventWait();
+		IPCEvent * event = nullptr;
+		try {
+			event = ipcEventProducer->eventWait();
+		} catch (...) {}
 		if (event == nullptr) {
+			cout << "- event null"<<endl;
 			return;
 		}
 		switch (event->eventType) {
 			case REGISTER_APPLICATION_RESPONSE_EVENT:{
+				cout << "- Server register response"<<endl;
 				ipcManager->commitPendingRegistration(event->sequenceNumber, dynamic_cast<RegisterApplicationResponseEvent*>(event)->DIFName);
 				break;
 			}
 			case UNREGISTER_APPLICATION_RESPONSE_EVENT:{
+				cout << "- Server unregister response"<<endl;
 				ipcManager->appUnregistrationResult(event->sequenceNumber, dynamic_cast<UnregisterApplicationResponseEvent*>(event)->result == 0);
 				break;
 			}
@@ -47,19 +56,29 @@ void simple_server::run() {
 				rina::FlowInformation flow = ipcManager->allocateFlowResponse( *dynamic_cast<FlowRequestEvent*>(event), 0, true);
 				LOG_INFO("New flow allocated [port-id = %d]", flow.portId);
 
-				 thread(&simple_server::handle_flow, this, flow.portId, flow.fd);
+				cout << "- Server flow alloc :: " << flow.portId << ":" << flow.fd <<endl;
+				//handle_flow(flow.portId, flow.fd);
+				thread t(&simple_server::handle_flow, this, flow.portId, flow.fd);
+				t.detach();
 				break;
 			}
 			case FLOW_DEALLOCATED_EVENT: {
 				int port_id = dynamic_cast<FlowDeallocatedEvent*>(event)->portId;
 				ipcManager->flowDeallocated(port_id);
 				LOG_INFO("Flow torn down remotely [port-id = %d]", port_id);
+				cout << "- Server flow dealloc :: " << port_id <<endl;
 				break;
 			}
 			default: {
+				cout << "- Server ??"<<endl;
 				LOG_INFO("Server got new event of type %d", event->eventType);
 				break;
 			}
 		}
 	}
+	cout << "- Server close"<<endl;
+}
+
+void simple_server::handle_flow(int port_id, int fd) {
+	cout << "- !!Simple server handlw flow :: " << port_id << ":" << fd <<endl;
 }

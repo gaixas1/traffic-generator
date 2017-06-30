@@ -1,5 +1,6 @@
 #pragma once
 #include "simple_client.h"
+#include <iostream>
 
 class base_client : public simple_client {
 public:
@@ -16,12 +17,12 @@ public:
 	void handle_flow(int port_id, int fd);
 
 protected:
-	virtual bool flow(int fd, char * buffer);
+	virtual bool flow(int fd, char * buffer) = 0;
 
+	long timeDIF;
 	int flowIdent;
 	bool doEcho, doRecord, busyWait;
 	int MIN_PDU, DIF_PDU, nsPDU;
-	long timeDIF;
 	bool print_interval;
 	int stats_interval;
 };

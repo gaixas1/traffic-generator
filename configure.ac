@@ -4,12 +4,12 @@
 # Written by: Francesco Salvestrini <f DOT salvestrini AT nextworks DOT it>
 #
 
-AC_INIT([RINA - traffic],[m4_esyscmd(build-aux/git-version-gen .tarball-version)],[gaixas1@ac.upc.edu],[rina-clocksincro],[http://github.com/gaixas1/traffic-generator])
+AC_INIT([RINA - traffic],[1.0])
 
 AC_PREREQ([2.69])
 
 AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_SRCDIR([src/clocksincro_main.cc])
+AC_CONFIG_SRCDIR([src/simple_ap.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 

@@ -1,5 +1,5 @@
 #include "common.h"
-
+#include <climits>
 
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "COMMON"
@@ -7,38 +7,42 @@
 
 #include <librina/librina.h>
 #include <librina/logs.h>
+#include <iostream>
 
 using namespace std;
 using namespace std::chrono;
 using namespace rina;
 
 bool read_data(int fd, char * buffer) {
-	dataSDU * data = (dataSDU*)&buffer;
-	int padding = 0;
+	dataSDU * data = (dataSDU*)buffer;
+	unsigned int padding = 0;
 	int ret;
 	do {
-		ret = read(fd, buffer, sizeof(int)-padding);
+		ret = read(fd, buffer+ padding, sizeof(int)-padding);
 		if (ret < 0) {
 			LOG_ERR("read() failed: %s", strerror(errno));
 			return false;
 		}
 		padding += ret;
+		//cout << padding << endl;
 	} while (padding < sizeof(int));
 	do {
-		ret = read(fd, buffer, data->size - padding);
+		ret = read(fd, buffer+ padding, data->size - padding);
 		if (ret < 0) {
 			LOG_ERR("read() failed: %s", strerror(errno));
 			return false;
 		}
 		padding += ret;
+		//cout << padding<< " | "<< data->size << endl;
 	} while (padding < data->size);
+	//cout << "PDU >>  len :: " << data->size << " | type :: " << data->type<<endl;
 	return true;
 }
 
 
 
-stats::stats(time_point<steady_clock> _t0, int _seq0) 
-	: t0(_t0), seq0(_seq0), pdu_num(0), pdu_data(0), m(0), S(0), n(0), minLat(LLONG_MAX), maxLat(LLONG_MIN) {}
+stats::stats(time_point<high_resolution_clock> _t0, int _seq0) 
+	: t0(_t0), seq0(_seq0), pdu_num(0), pdu_data(0), m(0), S(0), n(0), minLat(LLONG_MAX), maxLat(0) {}
 
 void stats::sample(int len, long long lat) {
 	pdu_num++;
@@ -51,14 +55,14 @@ void stats::sample(int len, long long lat) {
 	S = S + (lat - m)*(lat - m0);
 }
 
-void stats::print(time_point<steady_clock> t1, int seq1, ofstream & log) {
+void stats::print(time_point<high_resolution_clock> t1, int seq1, ofstream & log) {
 	long long duration = duration_cast<milliseconds>(t1 - t0).count();
 	double rate_num = (double)pdu_num * 1000.0 / (double)duration;
 	double rate_data = (double)pdu_data * 8000.0 / (double)duration;
 	int total = seq1 - seq0;
 	double received = (double)pdu_num / (double)total;
 
-	log << t1.time_since_epoch << ";" << duration
+	log << t1.time_since_epoch().count() << ";" << duration
 		<< ";" << pdu_num << ";" << pdu_data
 		<< ";" << rate_num << ";" << rate_data
 		<< ";" << received

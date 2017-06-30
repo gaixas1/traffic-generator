@@ -3,13 +3,13 @@
 
 #include <librina/librina.h>
 
-#define RINA_PREFIX	"traffic-generator-server"
+#define RINA_PREFIX	"ping"
 #include <librina/logs.h>
 
 #include "tclap/CmdLine.h"
 
 #include "config.h"
-#include "clocksincro.h"
+#include "ping.h"
 
 using namespace std;
 using namespace TCLAP;
@@ -18,17 +18,17 @@ int main(int argc, char * argv[]) {
 	string	apName, apInstance, dstName, dstInstance;
 	vector<string> difs;
 	vector<QoSpair> qos;
-	int maxMsgs, maxSleep;
+	int maxMsgs;
 
 	try {
-		CmdLine cmd("traffic-generator-server", ' ', PACKAGE_VERSION);
+		CmdLine cmd("ping", ' ', PACKAGE_VERSION);
 
 		ValueArg<string> apName_a(
 			"n",
 			"apName",
 			"Application process name, default = traffic.generator.server.",
-			true,
-			"traffic.generator.server",
+			false,
+			"ping.server",
 			"string"
 		);
 		ValueArg<string> apInstance_a(
@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
 		);
 		ValueArg<string> dstName_a(
 			"m",
-			"dstName",
+			"dsxtName",
 			"Destination Application process name, default = \"\" (server mode).",
 			false,
 			"",
@@ -71,21 +71,12 @@ int main(int argc, char * argv[]) {
 			"int"
 		);
 
-		ValueArg<int> maxSleep_a(
-			"S",
-			"max_sleep",
-			"Max time in ms between calls, default = 1 ms.",
-			false,
-			1,
-			"int"
-		);
 
 		cmd.add(apName_a);
 		cmd.add(apInstance_a);
 		cmd.add(dstName_a);
 		cmd.add(dstInstance_a);
 		cmd.add(maxMsgs_a);
-		cmd.add(maxSleep_a);
 		cmd.add(difs_a);
 		cmd.parse(argc, argv);
 
@@ -99,10 +90,6 @@ int main(int argc, char * argv[]) {
 		if (maxMsgs <= 0) {
 			maxMsgs = 1;
 		}
-		maxSleep = maxSleep_a.getValue();
-		if (maxSleep <= 0) {
-			maxSleep = 1;
-		}
 
 	} catch (ArgException &e) {
 		LOG_ERR("Error: %s for arg %d",
@@ -114,16 +101,15 @@ int main(int argc, char * argv[]) {
 	try {
 		rina::initialize("INFO", "");
 		if (dstName == string("")) {
-			cout << "Clock server | " << apName << ":" << apInstance <<endl;
-			clocksincro_server s(apName, apInstance);
+			cout << "Ping server | " << apName << ":" << apInstance <<endl;
+			ping_server s(apName, apInstance);
 			s.register_ap(difs);
 			s.run();
 		} else {
-			cout << "Clock client | " << apName << ":" << apInstance << " => " << dstName << ":" << dstInstance  <<endl;
-			clocksincro_client c(apName, apInstance, dstName, dstInstance, qos);
+			cout << "Ping client | " << apName << ":" << apInstance << " => " << dstName << ":" << dstInstance  <<endl;
+			ping_client c(apName, apInstance, dstName, dstInstance, qos);
 			c.register_ap(difs);
 			c.setMaxMsg(maxMsgs);
-			c.setMaxSleep(maxSleep);
 			c.run();
 		}
 	} catch (rina::Exception& e) {

@@ -13,7 +13,7 @@ using namespace std::chrono;
 #define DTYPE_START 4
 
 struct dataSDU {
-	int size;		//in Bytes
+	unsigned int size;		//in Bytes
 	int type;		//DTYPE_X
 	int flowIdent;	//Unique
 	int seqId;
@@ -26,14 +26,14 @@ struct dataSDU {
 bool read_data(int fd, char * buffer);
 
 struct stats {
-	time_point<steady_clock> t0;
+	time_point<high_resolution_clock> t0;
 	int seq0;
 	long pdu_num;
 	long long pdu_data;
 	double m, S, n;
 	long long minLat, maxLat;
 
-	stats(time_point<steady_clock> _t0, int _seq0);
+	stats(time_point<high_resolution_clock> _t0, int _seq0);
 	void sample(int len, long long lat);
-	void print(time_point<steady_clock> t1, int seq1, ofstream & log);
+	void print(time_point<high_resolution_clock> t1, int seq1, ofstream & log);
 };

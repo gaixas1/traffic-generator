@@ -1,5 +1,6 @@
 #include "server.h"
 #include <fstream>
+#include <time.h>
 
 
 #ifndef RINA_PREFIX
@@ -9,6 +10,7 @@
 #include <librina/librina.h>
 #include <librina/logs.h>
 #include "common.h"
+#include <iostream>
 
 using namespace std;
 using namespace std::chrono;
@@ -24,22 +26,28 @@ void server::setRecordRange(int ms) {
 }
 
 void server::handle_flow(int port_id, int fd) {
+	//cout << "Server - Handle flow "<< port_id << ":"<< fd <<endl;
+	
 	char buffer[BUFF_SIZE];
 	dataSDU * data = (dataSDU*)buffer;
 
+	//cout << "wait for - INIT"<<endl;
 	if (!read_data(fd, buffer)) {
 		LOG_ERR("FIRST READ FAILED - ABORT FLOW");
 		release_flow(port_id);
 		return;
 	}
 
-	if (data->type == DTYPE_INIT) {
+	if (data->type != DTYPE_INIT) {
 		LOG_ERR("WRONG INITIAL MESSAGE - ABORT FLOW");
-
+		cerr << "Type :: " << data->type << " vs expected " << DTYPE_INIT <<" -- " << (DTYPE_INIT == data->type)<<endl;
 		release_flow(port_id);
 		return;
 	}
+	//cout << "Received - INIT"<<endl;
 
+	
+	//cout << "send - START"<<endl;
 	data->type = DTYPE_START;
 	data->size = sizeof(dataSDU);
 	data->pong_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -57,7 +65,7 @@ void server::handle_flow(int port_id, int fd) {
 	log << "Initial Latency = " << (data->pong_time - data->ping_time) << endl;
 
 	
-	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\s;bps;Success prob.;Min Lat.;Min Lat.;Avg Lat.;Max Lat.;Std.Dev.Lat" << endl;
+	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\\s;bps;Success prob.;Min Lat.;Avg Lat.;Max Lat.;Std.Dev.Lat" << endl;
 	
 
 	if (data->record != 0) {
@@ -75,12 +83,16 @@ void server::handle_flow(int port_id, int fd) {
 	if (!result) {
 		LOG_ERR("SOMETHING FAILED - ABORT FLOW");
 	}
+	
+	//sleep_for(seconds(1));
+	cout << "SERVER -- FINFIN" <<endl;
 
-	release_flow(port_id);
+	//release_flow(port_id);
 }
 
 bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record, ofstream & recordlog) {
-	dataSDU * data = (dataSDU*)&buffer;
+	dataSDU * data = (dataSDU*)buffer;
+	cout << "SERVER -- INIT" <<endl;
 
 	auto interval = milliseconds(stats_interval);
 
@@ -99,6 +111,8 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 		}
 
 		if (data->type == DTYPE_DATA) {
+			
+			//cout << "Received data "<< data->seqId <<endl;
 			data->pong_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 			
 			long long lat = data->pong_time - data->ping_time;
@@ -146,14 +160,22 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 			}
 		}
 		else if (data->type == DTYPE_FIN) {
+			cout << "SERVER -- FIN" <<endl;
 			break;
 		}
 		else {
-			LOG_ERR("RECEIVED INVALID MESSAGE TYPE");
+			LOG_ERR("RECEIVED INVALID MESSAGE");
+			switch(data->type) {
+				case DTYPE_FIN : LOG_ERR("DTYPE_FIN"); break;
+				case DTYPE_INIT : LOG_ERR("DTYPE_INIT"); break;
+				case DTYPE_DATA : LOG_ERR("DTYPE_DATA"); break;
+				case DTYPE_START : LOG_ERR("DTYPE_START"); break;
+				default : LOG_ERR("???"); cerr <<  "Type "<< data->type<<endl;
+			}
 			return false;
 		}
 	}
-
+	data->type = DTYPE_FIN;
 	data->pong_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	if (write(fd, buffer, sizeof(dataSDU)) != sizeof(dataSDU)) {
 		LOG_ERR("FAILED AT SENDING FIN MESSAGE - ABORT FLOW");

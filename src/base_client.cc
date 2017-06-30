@@ -48,6 +48,8 @@ void base_client::setRecordInterval(bool stat, int ms) {
 }
 
 void base_client::handle_flow(int port_id, int fd) {
+	//cout << "Base Client - Handle flow "<< port_id << ":"<< fd <<endl;
+	
 	srand(time(0));
 	char buffer[BUFF_SIZE];
 	dataSDU * data = (dataSDU*)buffer;
@@ -59,19 +61,26 @@ void base_client::handle_flow(int port_id, int fd) {
 	data->echo = doEcho;
 	data->record = doRecord;
 
+	//cout << "send - INIT | size "<< data->size <<endl;
+	if (write(fd, buffer, data->size) != data->size) {
+		LOG_ERR("FAILED AT SENDING INIT MESSAGE - ABORT FLOW");
+		return;
+	}
 
+	//cout << "wait for - START"<<endl;
 	if (!read_data(fd, buffer)) {
 		LOG_ERR("FIRST READ FAILED - ABORT FLOW");
 		release_flow(port_id);
 		return;
 	}
 
-	if (data->type == DTYPE_INIT) {
+	if (data->type != DTYPE_START) {
 		LOG_ERR("WRONG INITIAL MESSAGE - ABORT FLOW");
 
 		release_flow(port_id);
 		return;
 	}
+	//cout << "Received - START"<<endl;
 
 	thread * echo_t = nullptr;
 	if (doEcho) {
@@ -80,6 +89,15 @@ void base_client::handle_flow(int port_id, int fd) {
 	}
 
 	bool result = flow(fd, buffer);
+	
+	if(result) {
+		data->type = DTYPE_FIN;
+		data->size = sizeof(data);
+		if (write(fd, buffer, data->size) != data->size) {
+			LOG_ERR("FAILED AT SENDING INIT MESSAGE - ABORT FLOW");
+			return;
+		}
+	}
 
 	if (doEcho) {
 		echo_t->join();
@@ -101,7 +119,7 @@ bool echo_listener(int fd, string filename, bool interval_stats, int interval_ms
 
 	ofstream log;
 	log.open(filename);
-	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\s;bps;Success prob.;Min RTT.;Min RTT.;Avg RTT.;Max RTT.;Std.Dev.RTT" << endl;
+	log << "TYPE;Index;Time;Duration;PDUs;Data;PDUs\\s;bps;Success prob.;Min RTT.;Min RTT.;Avg RTT.;Max RTT.;Std.Dev.RTT" << endl;
 
 	auto interval = milliseconds(interval_ms);
 
