@@ -9,17 +9,15 @@
 #include <librina/logs.h>
 
 #include <iostream>
+
 using namespace rina;
 using namespace std;
 
 void simple_client::run() {
-	cout << "- Client run"<<endl;
 	port_fd p_fd = request_flow(dst_apn, dst_api, qos);
 	if (p_fd.port <= 0) {
 		return;
 	}
 	
-	cout << "- Client flow allocated"<<endl;
-
 	handle_flow(p_fd.port, p_fd.fd);
 }

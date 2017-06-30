@@ -35,8 +35,6 @@ bool simple_ap::register_ap() {
 }
 
 bool simple_ap::register_ap(const string & dif_name) {
-	
-	cout << "Register APP : "<< this->name << ":" << this->instance<< " | in "<< dif_name << endl;
 	ApplicationRegistrationInformation ari;
 	RegisterApplicationResponseEvent * resp;
 	unsigned int seqnum;
@@ -56,7 +54,6 @@ bool simple_ap::register_ap(const string & dif_name) {
 	// Request the registration
 	seqnum = ipcManager->requestApplicationRegistration(ari);
 
-	cout << "--wait for event"<< endl;
 	// Wait for the response to come
 	for (;;) {
 		event = ipcEventProducer->eventWait();
@@ -66,12 +63,10 @@ bool simple_ap::register_ap(const string & dif_name) {
 			if (resp->result == 0) {
 				ipcManager->commitPendingRegistration(seqnum, resp->DIFName);
 				this->reg_difs.push_back(dif_name);
-				cout << "--registered"<< endl;
 				return true;
 			} else {
 				ipcManager->withdrawPendingRegistration(seqnum);
 				LOG_ERR("Failed to register application");
-				cout << "--failure"<< endl;
 				return false;
 			}
 		}
@@ -124,8 +119,6 @@ FlowSpecification getQoS(const vector<QoSpair> & rq) {
 
 port_fd simple_ap::request_flow(const std::string& apn, const std::string& api, const vector<QoSpair> & rq) {
 	
-	cout << "Requested flow from : "<< this->name << ":" << this->instance<< " | to " << apn << ":" << api << endl;
-				
 	unsigned int seqnum = ipcManager->requestFlowAllocation(ApplicationProcessNamingInformation(this->name, this->instance), ApplicationProcessNamingInformation(apn, api), getQoS(rq));
 	for (;;) {
 		IPCEvent * event = ipcEventProducer->eventWait();
@@ -135,11 +128,9 @@ port_fd simple_ap::request_flow(const std::string& apn, const std::string& api, 
 				ipcManager->commitPendingFlow( afrrevent->sequenceNumber, afrrevent->portId, afrrevent->difName);
 			if (flow.portId < 0) {
 				LOG_ERR("Failed to allocate a flow");
-				cout << "--request failed"<<endl;
 				return port_fd(0, 0);
 			}
 			LOG_DBG("Port id = %d", flow.portId);
-			cout << "--request success"<<endl;
 			return port_fd(flow.portId, flow.fd);
 		}
 		LOG_DBG("Got new event %d", event->eventType);
@@ -151,7 +142,6 @@ port_fd simple_ap::request_flow(const std::string& apn, const std::string& api, 
 		return request_flow(apn, api, rq);
 	}
 
-	cout << "Requested flow from : "<< this->name << ":" << this->instance<< " | to " << apn << ":" << api << endl;
 	
 	unsigned int seqnum = ipcManager->requestFlowAllocationInDIF(ApplicationProcessNamingInformation( this->name, this->instance), ApplicationProcessNamingInformation( apn, api), ApplicationProcessNamingInformation(dif_name, ""),getQoS(rq));
 	for (;;) {
@@ -161,11 +151,9 @@ port_fd simple_ap::request_flow(const std::string& apn, const std::string& api, 
 			rina::FlowInformation flow = ipcManager->commitPendingFlow( afrrevent->sequenceNumber, afrrevent->portId, afrrevent->difName);
 			if (flow.portId < 0) {
 				LOG_ERR("Failed to allocate a flow");
-				cout << "--request failed"<<endl;
 				return port_fd(0, 0);
 			}
 			LOG_DBG("Port id = %d", flow.portId);
-			cout << "--request success"<<endl;
 			return port_fd(flow.portId, flow.fd);
 		}
 		LOG_DBG("Got new event %d", event->eventType);
@@ -191,6 +179,22 @@ int simple_ap::release_all_flows() {
 	return 0;
 }
 
+int simple_ap::readBuffer(int fd, char * buffer, int bytes){
+	do {
+		int ret = read(fd, buffer, bytes);
+		if (ret <= 0) {
+			if(ret == 0) {
+				LOG_ERR("read() failed: return 0");
+			} else {
+				LOG_ERR("read() failed: %s", strerror(errno));
+			}
+			return bytes;
+		}
+		bytes -= ret;
+		buffer += ret;
+	} while (bytes > 0);
+	return bytes;
+}
 
 
 bool parseQoSRequirements(vector<QoSpair> & qos, string filename) {

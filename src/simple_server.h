@@ -1,6 +1,8 @@
 #pragma once
 #include "simple_ap.h"
 
+using namespace std;
+
 class simple_server: public simple_ap {
 public:
 	simple_server(std::string name, std::string api)

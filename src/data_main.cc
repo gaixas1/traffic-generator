@@ -142,9 +142,9 @@ int main(int argc, char * argv[]) {
 		ValueArg<int> interPDU_a(
 			"v",
 			"interval",
-			"Time between PDUs in ns, default = 0",
+			"Time between PDUs in ns, default = 1000000, 1ms",
 			false,
-			0,
+			1000000,
 			"int"
 		);
 

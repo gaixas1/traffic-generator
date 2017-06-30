@@ -1,12 +1,10 @@
 #include "clocksincro.h"
 
-
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
 #include <chrono>
 #include <thread>
-
 
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "CLOCKSINCRO"
@@ -25,85 +23,80 @@ struct data_t {
 	int seq;
 };
 
-bool readBuffer(int fd, char * buffer, int i) {
-	int padding = 0;
-	int ret;
-	do {
-		ret = read(fd, buffer + padding, i);
-		if (ret < 0) {
-			LOG_ERR("read() failed: %s", strerror(errno));
-			return false;
-		}
-		i -= ret;
-		padding += ret;
-	} while (i > 0);
-	return true;
-}
-
-
 void clocksincro_server::handle_flow(int port_id, int fd) {
-	cout << "Clocksincro server - Handle flow "<< port_id << ", "<< fd<<endl;
 	data_t data;
 	char * buffer = (char*)& data;
-
-	for (;;) {
-		if (readBuffer(fd, buffer, sizeof(data_t))) {
+	try {
+		do{
+			if (readBuffer(fd, buffer, sizeof(data_t)) != 0) {
+				LOG_ERR("FAILED AT READ - ABORT FLOW");
+				break;
+			}
+			
 			data.pong = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
+			
 			if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
 				LOG_ERR("FAILED AT ECHO - ABORT FLOW");
-				release_flow(port_id);
-				return;
+				break;
 			}
-		} else {
-			LOG_ERR("FAILED AT READ - ABORT FLOW");
+		} while(data.seq > 0);
+	} catch(...){
+		LOG_ERR("EXCEPTION CATCHED - Something failed");
+		try {
 			release_flow(port_id);
-			return;
+		} catch(...){
+			LOG_ERR("EXCEPTION CATCHED - Something failed while releasing flow");
 		}
 		
-		if(data.seq <= 0) break;
 	}
-	cout << "Clocksincro server - Handle flow "<< port_id << ", "<< fd << " -- END "<<endl;
 }
 
 
 
 void clocksincro_client::handle_flow(int port_id, int fd) {
-	cout << "Clocksincro client - Handle flow "<< port_id << ", "<< fd<<endl;
 	data_t data;
 	char * buffer = (char*)& data;
 	srand(time(0));
 
 	long minLat = LONG_MAX;
 	long minDif = LONG_MAX;
-
-	for (int i = 0; i < MAX_MSG; i++) {
-		int ms = rand() % MAX_SLEEP;
-		sleep_for(milliseconds(ms));
-		data.seq = MAX_MSG - i - 1; 
-		data.ping = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
-		if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
-			LOG_ERR("FAILED AT ECHO - ABORT FLOW");
-			break;
-		}
-
-		if (readBuffer(fd, buffer, sizeof(data_t))) {
+	data.seq = MAX_MSG;
+	
+	try {
+		while(data.seq-- > 0) {
+			if(MAX_SLEEP > 0){
+				sleep_for( milliseconds( rand() % MAX_SLEEP ) );
+			}
+			
+			data.ping = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
+			
+			if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
+				LOG_ERR("FAILED AT ECHO - ABORT FLOW");
+				break;
+			}
+			
+			if (readBuffer(fd, buffer, sizeof(data_t)) != 0) {
+				LOG_ERR("FAILED AT READ - ABORT FLOW");
+				break;
+			}
+			
 			long t1 = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
 			long lat = (t1 - data.ping) / 2;
 			if (lat < minLat) { minLat = lat; }
 
 			long difa = (data.pong - data.ping);
-			long difb = (t1 - data.pong);
 			if (difa < minDif) { minDif = difa; }
+			
+			long difb = (t1 - data.pong);
 			if (difb < minDif) { minDif = difb; }
-
-			//cout << (minLat-minDif) << endl;
-		} else {
-			LOG_ERR("FAILED AT READ - ABORT FLOW");
-			break;
 		}
+		release_flow(port_id);
+	} catch(...){
+		LOG_ERR("EXCEPTION CATCHED - Something failed");
 	}
+	
 	cout << (minLat - minDif) << endl;
-	release_flow(port_id);
+	
 }
 
 

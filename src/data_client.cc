@@ -19,71 +19,59 @@ using namespace std::this_thread;
 using namespace rina;
 
 void data_client::setBurstSize(int min, int max) {
+	if(min < 1) { min = 1;}
+	if(max < 1) { max = 1;}
 	if (min == max) {
 		MIN_BURST = min;
 		DIF_BURST = 0;
-	}
-	else if (min < max) {
+	} else if (min < max) {
 		MIN_BURST = min;
 		DIF_BURST = max - min;
-	}
-	else {
+	} else {
 		MIN_BURST = max;
 		DIF_BURST = min - max;
-	}
-	if (MIN_BURST <= 0) {
-		throw std::invalid_argument("received negative value for burst size");
 	}
 }
 
 void data_client::setData(int kB) {
+	if(kB < 1) { kB = 1; }
 	MIN_DATA = kB;
 }
 
-
 bool data_client::flow(int fd, char * buffer) {
 	dataSDU * data = (dataSDU*)buffer;
-	int remaining = (MIN_DATA * 2000) / (2 * MIN_PDU + DIF_PDU);
 
 	nanoseconds timeD(timeDIF);
-
 	data->type = DTYPE_DATA;
-	int current_burst = 0;
-	int current_burst_size = MIN_BURST + rand() % DIF_BURST;
-
-	auto t = system_clock::now() + nanoseconds(current_burst_size * nsPDU);
-	while (remaining > 0) {
-		data->size = MIN_PDU + rand() % DIF_PDU;
+	int rem_burst = MIN_BURST + (DIF_BURST > 0 ? rand() % DIF_BURST : 0);
+	auto t = system_clock::now() + nanoseconds(rem_burst * nsPDU);
+	
+	int rem = (MIN_DATA * 2000) / (2 * MIN_PDU + DIF_PDU);
+	for(; rem > 0; rem--) {
+		data->size = MIN_PDU + (DIF_PDU > 0? rand() % DIF_PDU : 0);
 		data->seqId++;
 		data->ping_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch() - timeD).count();
 
-		if (write(fd, buffer, data->size) != data->size) {
-			LOG_ERR("FAILED AT SENDING DATA MESSAGE - ABORT FLOW");
+		try {
+			if (write(fd, buffer, data->size) != data->size) {
+				LOG_ERR("FAILED AT SENDING DATA MESSAGE - ABORT FLOW");
+				return false;
+			}
+		} catch(...){
+			LOG_ERR("EXCEPTION CATCHED - Write failed");
 			return false;
 		}
 
-		remaining--;
-		current_burst++;
-
-		if (current_burst >= current_burst_size) {
+		if (--rem_burst == 0) {
 			if (busyWait) {
 				while (system_clock::now() < t) {}
 			} else {
-				if (t > system_clock::now()) {
-					sleep_until(t);
-				}
+				if (t > system_clock::now()) { sleep_until(t); }
 			}
+		} else {
+			rem_burst = MIN_BURST + (DIF_BURST > 0? rand() % DIF_BURST : 0);
+			t += nanoseconds(rem_burst * nsPDU);
 		}
-		current_burst = 0;
-		current_burst_size = MIN_BURST + rand() % DIF_BURST;
-		t += nanoseconds(current_burst_size * nsPDU);
-	}
-
-	data->size = sizeof(dataSDU);
-	data->type = DTYPE_FIN;
-	if (write(fd, buffer, data->size) != data->size) {
-		LOG_ERR("FAILED AT SENDING FIN MESSAGE - ABORT FLOW");
-		return false;
 	}
 
 	return true;

@@ -3,7 +3,6 @@
 #include "simple_client.h"
 #include "simple_server.h"
 
-
 class clocksincro_server : public simple_server {
 public:
 	clocksincro_server(std::string name, std::string api) 
@@ -12,8 +11,6 @@ public:
 protected:
 	void handle_flow(int port_id, int fd);
 };
-
-
 
 class clocksincro_client : public simple_client {
 public:

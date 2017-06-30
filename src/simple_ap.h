@@ -55,6 +55,10 @@ public:
 	int release_flow(const int port_id);
 	int release_all_flows();
 
+	//read $bytes bytes from $fd into $buffer. 
+	//returns remaining bytes to read: 0 = success, > 0 failure, < 0 !!read too much!!
+	int readBuffer(int fd, char * buffer, int bytes);
+
 protected:
 	string name;
 	string instance;

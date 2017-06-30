@@ -23,7 +23,7 @@ struct dataSDU {
 	long long pong_time;
 };
 
-bool read_data(int fd, char * buffer);
+bool read_dataSDU(int fd, char * buffer);
 
 struct stats {
 	time_point<high_resolution_clock> t0;

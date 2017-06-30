@@ -13,29 +13,37 @@ using namespace std;
 using namespace std::chrono;
 using namespace rina;
 
-bool read_data(int fd, char * buffer) {
+bool read_dataSDU(int fd, char * buffer) {
 	dataSDU * data = (dataSDU*)buffer;
-	unsigned int padding = 0;
-	int ret;
+	int rem = sizeof(int);
+	
 	do {
-		ret = read(fd, buffer+ padding, sizeof(int)-padding);
-		if (ret < 0) {
-			LOG_ERR("read() failed: %s", strerror(errno));
+		int ret = read(fd, buffer, rem);
+		if (ret <= 0) {
+			if(ret == 0) {
+				LOG_ERR("read() failed: return 0");
+			} else {
+				LOG_ERR("read() failed: %s", strerror(errno));
+			}
 			return false;
 		}
-		padding += ret;
-		//cout << padding << endl;
-	} while (padding < sizeof(int));
+		buffer += ret;
+		rem -= ret;
+	} while (rem > 0);
+	rem += data->size - sizeof(int);
 	do {
-		ret = read(fd, buffer+ padding, data->size - padding);
-		if (ret < 0) {
-			LOG_ERR("read() failed: %s", strerror(errno));
+		int ret = read(fd, buffer, rem);
+		if (ret <= 0) {
+			if(ret == 0) {
+				LOG_ERR("read() failed: return 0");
+			} else {
+				LOG_ERR("read() failed: %s", strerror(errno));
+			}
 			return false;
 		}
-		padding += ret;
-		//cout << padding<< " | "<< data->size << endl;
-	} while (padding < data->size);
-	//cout << "PDU >>  len :: " << data->size << " | type :: " << data->type<<endl;
+		buffer += ret;
+		rem -= ret;
+	} while (rem > 0);
 	return true;
 }
 
@@ -62,7 +70,9 @@ void stats::print(time_point<high_resolution_clock> t1, int seq1, ofstream & log
 	int total = seq1 - seq0;
 	double received = (double)pdu_num / (double)total;
 
-	log << t1.time_since_epoch().count() << ";" << duration
+	log << t0.time_since_epoch().count() 
+		<< ";" << t1.time_since_epoch().count() 
+		<< ";" << duration
 		<< ";" << pdu_num << ";" << pdu_data
 		<< ";" << rate_num << ";" << rate_data
 		<< ";" << received
