@@ -57,7 +57,7 @@ void base_client::handle_flow(int port_id, int fd) {
 	data->record = doRecord;
 	data->ping_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	try {
-		if (write(fd, buffer, data->size) != data->size) {
+		if (write(fd, buffer, data->size) != (int) data->size) {
 			LOG_ERR("FAILED AT SENDING INIT MESSAGE - ABORT FLOW");
 			release_flow(port_id);
 			return;
@@ -84,7 +84,7 @@ void base_client::handle_flow(int port_id, int fd) {
 		data->type = DTYPE_FIN;
 		data->size = sizeof(data);
 		try {		
-			if (write(fd, buffer, data->size) != data->size) {
+			if (write(fd, buffer, data->size) != (int)data->size) {
 				LOG_ERR("FAILED AT SENDING INIT MESSAGE - ABORT FLOW");
 				return;
 			}	

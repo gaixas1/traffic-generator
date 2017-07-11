@@ -53,7 +53,7 @@ bool data_client::flow(int fd, char * buffer) {
 		data->ping_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch() - timeD).count();
 
 		try {
-			if (write(fd, buffer, data->size) != data->size) {
+			if (write(fd, buffer, data->size) != (int)data->size) {
 				LOG_ERR("FAILED AT SENDING DATA MESSAGE - ABORT FLOW");
 				return false;
 			}
