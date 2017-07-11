@@ -111,7 +111,41 @@ FlowSpecification getQoS(const vector<QoSpair> & rq) {
 	for (const QoSpair & fv : rq) {
 		if (fv.param == "reliable") {
 			qos_spec.maxAllowableGap = fv.value == "true" ? 0 : -1;
-		}
+		} else if (fv.param == "partialDelivery") {
+			qos_spec.partialDelivery = fv.value == "true" ? false : true;
+		} else  if (fv.param == "orderedDelivery") {
+			qos_spec.orderedDelivery = fv.value == "true" ? false : true;
+		} else if (fv.param == "maxAllowableGap") {
+			qos_spec.maxAllowableGap = stoi(fv.value);
+		} else if (fv.param == "delay") {
+			qos_spec.delay = stoi(fv.value);
+		} else if (fv.param == "jitter") {
+			qos_spec.jitter = stoi(fv.value);
+		} else if (fv.param == "maxSDUsize") {
+			qos_spec.maxSDUsize = stoi(fv.value);
+		} else if (fv.param == "averageBandwidth") {
+			qos_spec.averageBandwidth = stoi(fv.value);
+			if(qos_spec.averageBandwidth<0) {
+				qos_spec.averageBandwidth = 0;
+			}
+		} else if (fv.param == "averageSDUBandwidth") {
+			qos_spec.averageSDUBandwidth = stoi(fv.value);
+			if(qos_spec.averageSDUBandwidth<0) {
+				qos_spec.averageSDUBandwidth = 0;
+			}
+		} else if (fv.param == "peakBandwidthDuration") {
+			qos_spec.peakBandwidthDuration = stoi(fv.value);
+			if(qos_spec.peakBandwidthDuration<0) {
+				qos_spec.peakBandwidthDuration = 0;
+			}
+		} else if (fv.param == "peakSDUBandwidthDuration") {
+			qos_spec.peakSDUBandwidthDuration = stoi(fv.value);
+			if(qos_spec.peakSDUBandwidthDuration<0) {
+				qos_spec.peakSDUBandwidthDuration = 0;
+			}
+		} else if (fv.param == "undetectedBitErrorRate") {
+			qos_spec.undetectedBitErrorRate = stod(fv.value);
+		} 
 	}
 
 	return qos_spec;
