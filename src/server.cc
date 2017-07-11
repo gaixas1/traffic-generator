@@ -95,7 +95,7 @@ bool server::flow(int fd, char * buffer, ofstream & log, bool echo, bool record,
 			}
 			
 			data->pong_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-			if ((data->type == DTYPE_FIN || echo) && write(fd, buffer, data->size) != data->size) {
+			if ((data->type == DTYPE_FIN || echo) && write(fd, buffer, data->size) != (int)data->size) {
 				LOG_ERR("FAILED AT SENDING DATA MESSAGE - ABORT FLOW");
 				return false;
 			}
