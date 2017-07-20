@@ -53,7 +53,7 @@ void bach_voice::setDuration(int ms) {
 
 	
 void bach_voice::handle_flow(int port_id, int fd) {
-	
+	srand (time(NULL));
 	union {
 		char buffer[BUFF_SIZE];
 		SDU data;

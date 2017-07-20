@@ -130,7 +130,7 @@ rina_readrop_CPPFLAGS =				\
 rina_readrop_CXXFLAGS =				\
 	$(CPPFLAGS_EXTRA)
 	
-#Voice
+#bVoice
 rina_bvoice_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
@@ -149,6 +149,25 @@ rina_bvoice_CPPFLAGS =				\
 rina_bvoice_CXXFLAGS =				\
 	$(CPPFLAGS_EXTRA)
 	
+#bCRate
+rina_bcrate_SOURCES  =				\
+    simple_ap.cc \
+	simple_client.cc \
+	batch_crate.cc \
+    bcrate_main.cc
+	
+rina_bcrate_LDADD    = $(LIBRINA_LIBS)		\
+		     -lrt 
+
+rina_bcrate_CPPFLAGS =				\
+	$(LIBRINA_CFLAGS)			\
+	$(CPPFLAGS_EXTRA)			\
+        $(BOOST_CPPFLAGS)			\
+	-I$(srcdir)/tclap
+
+rina_bcrate_CXXFLAGS =				\
+	$(CPPFLAGS_EXTRA)
+	
 ## BINs
 
 bin_PROGRAMS                       += rina-ping
@@ -157,7 +176,8 @@ bin_PROGRAMS                       += rina-server
 bin_PROGRAMS                       += rina-voice
 bin_PROGRAMS                       += rina-data
 bin_PROGRAMS                       += rina-readrop	
-bin_PROGRAMS                       += rina-bvoice				
+bin_PROGRAMS                       += rina-bvoice		
+bin_PROGRAMS                       += rina-bcrate				
 
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-ping
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-clocksincro
@@ -166,3 +186,4 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-voice
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-data
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-readrop
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-bvoice
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-bcrate
