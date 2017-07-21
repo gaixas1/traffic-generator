@@ -9,181 +9,143 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT =
 
 
 #Ping
-rina_ping_SOURCES  =				\
-	ping.cc		ping.h	\
-	simple_server.cc		simple_server.h	\
-	simple_client.cc		simple_client.h	\
-    simple_ap.cc		simple_ap.h	\
+ping_SOURCES  =				\
+	ping.cc	\
+	simple_server.cc	\
+	simple_client.cc	\
+    simple_ap.cc	\
     ping_main.cc
 
-rina_ping_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_ping_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_ping_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+ping_LDADD    = $(LIBRINA_LIBS) -lrt 
+ping_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+ping_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 
 #Clocksincro
-rina_clocksincro_SOURCES  =				\
-	clocksincro.cc		clocksincro.h	\
-	simple_server.cc		simple_server.h	\
-	simple_client.cc		simple_client.h	\
-    simple_ap.cc		simple_ap.h	\
+clocksincro_SOURCES  =				\
+	clocksincro.cc	\
+	simple_server.cc	\
+	simple_client.cc	\
+    simple_ap.cc	\
     clocksincro_main.cc
 
-rina_clocksincro_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_clocksincro_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_clocksincro_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+clocksincro_LDADD    = $(LIBRINA_LIBS) -lrt 
+clocksincro_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+clocksincro_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 
 #Server
-rina_server_SOURCES  =				\
-	server.cc		server.h	\
-	simple_server.cc		simple_server.h	\
-    simple_ap.cc		simple_ap.h	\
+server_SOURCES  =				\
+	server.cc	\
+	simple_server.cc	\
+    simple_ap.cc	\
     common.cc	\
     server_main.cc
 
-rina_server_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_server_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_server_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+server_LDADD    = $(LIBRINA_LIBS) -lrt 
+server_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+server_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 
 	
 #Voice
-rina_voice_SOURCES  =				\
-    common.cc				common.h	\
-    simple_ap.cc			simple_ap.h	\
-	simple_client.cc		simple_client.h	\
-    base_client.cc			base_client.h	\
-	voice_client.cc			voice_client.h	\
+voice_SOURCES  =				\
+    common.cc	\
+    simple_ap.cc	\
+	simple_client.cc	\
+    base_client.cc	\
+	voice_client.cc	\
     voice_main.cc
 	
-rina_voice_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_voice_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_voice_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+voice_LDADD    = $(LIBRINA_LIBS) -lrt 
+voice_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+voice_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 #Data
-rina_data_SOURCES  =				\
-    common.cc				common.h	\
-    simple_ap.cc			simple_ap.h	\
-	simple_client.cc		simple_client.h	\
-    base_client.cc			base_client.h	\
-	data_client.cc			data_client.h	\
+data_SOURCES  =				\
+    common.cc	\
+    simple_ap.cc	\
+	simple_client.cc	\
+    base_client.cc	\
+	data_client.cc	\
     data_main.cc
 	
-rina_data_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_data_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_data_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+data_LDADD    = $(LIBRINA_LIBS) -lrt 
+data_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+data_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 #Readrop
-rina_readrop_SOURCES  =				\
-	simple_server.cc		simple_server.h	\
-    simple_ap.cc		simple_ap.h	\
-    readrop.cc		readrop.h	\
+readrop_SOURCES  =				\
+	simple_server.cc	\
+    simple_ap.cc	\
+    readrop.cc	\
     readrop_main.cc
 	
-rina_readrop_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_readrop_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_readrop_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+readrop_LDADD    = $(LIBRINA_LIBS) -lrt 
+readrop_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+readrop_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+	
+#Logger
+logger_SOURCES  =				\
+	simple_server.cc	\
+    simple_ap.cc	\
+    logger.cc	\
+    logger_main.cc
+	
+logger_LDADD    = $(LIBRINA_LIBS) -lrt 
+logger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+logger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 #bVoice
-rina_bvoice_SOURCES  =				\
+bvoice_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
 	bach_voice.cc \
     bvoice_main.cc
 	
-rina_bvoice_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_bvoice_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_bvoice_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+bvoice_LDADD    = $(LIBRINA_LIBS) -lrt 
+bvoice_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+bvoice_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+	
+#dbVoice
+dbvoice_SOURCES  =				\
+    simple_ap.cc \
+	simple_client.cc \
+	dbach_voice.cc \
+    dbvoice_main.cc
+	
+dbvoice_LDADD    = $(LIBRINA_LIBS) -lrt 
+dbvoice_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+dbvoice_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 #bCRate
-rina_bcrate_SOURCES  =				\
+bcrate_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
 	batch_crate.cc \
     bcrate_main.cc
 	
-rina_bcrate_LDADD    = $(LIBRINA_LIBS)		\
-		     -lrt 
-
-rina_bcrate_CPPFLAGS =				\
-	$(LIBRINA_CFLAGS)			\
-	$(CPPFLAGS_EXTRA)			\
-        $(BOOST_CPPFLAGS)			\
-	-I$(srcdir)/tclap
-
-rina_bcrate_CXXFLAGS =				\
-	$(CPPFLAGS_EXTRA)
+bcrate_LDADD    = $(LIBRINA_LIBS) -lrt 
+bcrate_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+bcrate_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 ## BINs
 
-bin_PROGRAMS                       += rina-ping
-bin_PROGRAMS                       += rina-clocksincro
-bin_PROGRAMS                       += rina-server
-bin_PROGRAMS                       += rina-voice
-bin_PROGRAMS                       += rina-data
-bin_PROGRAMS                       += rina-readrop	
-bin_PROGRAMS                       += rina-bvoice		
-bin_PROGRAMS                       += rina-bcrate				
+bin_PROGRAMS                       += ping
+bin_PROGRAMS                       += clocksincro
+bin_PROGRAMS                       += server
+bin_PROGRAMS                       += voice
+bin_PROGRAMS                       += data
+bin_PROGRAMS                       += readrop	
+bin_PROGRAMS                       += bvoice	
+bin_PROGRAMS                       += dbvoice		
+bin_PROGRAMS                       += bcrate		
+bin_PROGRAMS                       += logger				
 
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-ping
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-clocksincro
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-server
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-voice
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-data
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-readrop
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-bvoice
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += rina-bcrate
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += ping
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += clocksincro
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += server
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += voice
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += data
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += readrop
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += bvoice
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += dbvoice
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += bcrate
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += logger
