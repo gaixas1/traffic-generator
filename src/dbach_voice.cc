@@ -1,4 +1,4 @@
-#include "bach_voice.h"
+#include "dbach_voice.h"
 #include <fstream>
 #include <thread>
 #include <iostream>
@@ -7,7 +7,7 @@
 #include <string.h>
 
 #ifndef RINA_PREFIX
-#define RINA_PREFIX "BACH_VOICE"
+#define RINA_PREFIX "DBACH_VOICE"
 #endif // !RINA_PREFIX
 
 #include <librina/librina.h>
@@ -19,17 +19,28 @@ using namespace std::chrono;
 using namespace std::this_thread;
 using namespace rina;
 
-void bach_voice::setPDU(int min_B, int max_B) {
-	if (min_B <= (int)sizeof(SDU) ) {
+void dbach_voice::setPDUON(int min_B, int max_B) {
+	if (min_B < (int)sizeof(SDU) ) {
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size");
 	}
 	if (min_B > max_B) {
 		max_B = min_B;
 	} 
-	MIN_PDU = min_B;
-	MAX_PDU = max_B;
+	MIN_PDU_ON = min_B;
+	MAX_PDU_ON = max_B;
 }
-void bach_voice::setON(int min_ms, int max_ms) {
+void dbach_voice::setPDUOFF(int min_B, int max_B) {
+	if (min_B < (int)sizeof(SDU) ) {
+		cout << min_B << " vs "<< (int)sizeof(SDU)<<endl;
+		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size (silence)");
+	}
+	if (min_B > max_B) {
+		max_B = min_B;
+	} 
+	MIN_PDU_OFF = min_B;
+	MAX_PDU_OFF = max_B;
+}
+void dbach_voice::setON(int min_ms, int max_ms) {
 	if (min_ms <= 0) {
 		throw std::invalid_argument("received non-positive value for ON interval");
 	}
@@ -39,7 +50,7 @@ void bach_voice::setON(int min_ms, int max_ms) {
 	MIN_ON = min_ms;
 	MAX_ON = max_ms;
 }
-void bach_voice::setOFF(int min_ms, int max_ms) {
+void dbach_voice::setOFF(int min_ms, int max_ms) {
 	if (min_ms <= 0) {
 		throw std::invalid_argument("received non-positive value for OFF interval");
 	}
@@ -49,12 +60,12 @@ void bach_voice::setOFF(int min_ms, int max_ms) {
 	MIN_OFF = min_ms;
 	MAX_OFF = max_ms;
 }
-void bach_voice::setDuration(int ms) {
+void dbach_voice::setDuration(int ms) {
 	duration = ms;
 }
 
 	
-void bach_voice::handle_flow(int port_id, int fd) {
+void dbach_voice::handle_flow(int port_id, int fd) {
 	srand (time(NULL));
 	union {
 		char buffer[BUFF_SIZE];
@@ -91,17 +102,33 @@ void bach_voice::handle_flow(int port_id, int fd) {
 	
 	
 	now = system_clock::now();
-	int DIF_PDU, DIF_ON, DIF_OFF;
-	DIF_PDU = MAX_PDU - MIN_PDU;
+	int DIF_PDU_ON, DIF_PDU_OFF, DIF_ON, DIF_OFF;
+	DIF_PDU_ON = MAX_PDU_ON - MIN_PDU_ON;
+	DIF_PDU_OFF = MAX_PDU_OFF - MIN_PDU_OFF;
 	DIF_ON = MAX_ON - MIN_ON;
 	DIF_OFF = MAX_OFF - MIN_OFF;
+	
+	int minCountPDUOn, difCountPDUOn, minCountPDUOff, difCountPDUOff;
+	minCountPDUOn = MIN_ON * Hz / 1000.0;
+	difCountPDUOn = DIF_ON * Hz / 1000.0;
+	minCountPDUOff = MIN_OFF * Hz / 1000.0;
+	difCountPDUOff = DIF_OFF * Hz / 1000.0;
+	cout << MIN_PDU_ON << " " << DIF_PDU_ON  << " " << MIN_PDU_OFF  << " " << DIF_PDU_OFF <<endl;
+	cout << minCountPDUOn << " " << difCountPDUOn  << " " << difCountPDUOff  << " " << difCountPDUOff <<endl;
 	
 	for(int i = 0; i < n; i++) {
 		voice_flow f;
 		f.id = i;
 		f.next_sq = 0;
-		f.rem = (int) ceil((MIN_ON + (DIF_ON ? rand()%DIF_ON : 0)) * Hz / 1000.0);
-		f.next_t = now + milliseconds(rand() % ((MIN_OFF + MAX_OFF)/2));
+		
+		int t = rand()%(MAX_ON + MAX_OFF);
+		f.on = t < MAX_ON;
+		f.next_t = now + microseconds(rand() % ((int) (1000000.0/Hz)));
+		if(f.on) {
+			f.rem = rand() % (minCountPDUOn + difCountPDUOn)+1;
+		} else {
+			f.rem = rand() % (minCountPDUOff + difCountPDUOff)+1;
+		}
 		flows.push_back(f);
 	}
 	
@@ -127,7 +154,11 @@ void bach_voice::handle_flow(int port_id, int fd) {
 				voice_flow & f = flows[i];
 				while(f.next_t <= now) {
 					//SEND PDU
-					data.len = MIN_PDU + (DIF_PDU ? rand()%DIF_PDU : 0);
+					if(f.on) {
+						data.len = MIN_PDU_ON + (DIF_PDU_ON ? rand()%DIF_PDU_ON : 0);
+					} else  {
+						data.len = MIN_PDU_OFF + (DIF_PDU_OFF ? rand()%DIF_PDU_OFF : 0);
+					}
 					data.id = f.id;
 					data.sq = f.next_sq++;
 					data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
@@ -137,12 +168,18 @@ void bach_voice::handle_flow(int port_id, int fd) {
 					}
 					
 					//NEXT PDU
-					if(f.rem > 0) {
-						f.next_t += interval;
-					} else {
-						f.rem = (int) ceil((MIN_ON + (DIF_ON ? rand()%DIF_ON : 0)) * Hz / 1000.0);
-						f.next_t += milliseconds(MIN_OFF + (DIF_OFF ? rand()%DIF_OFF : 0));
-					}
+					if(f.rem <= 0) {
+						if(f.on) {
+							f.on = false;
+							f.rem = minCountPDUOff + (minCountPDUOff ? rand()%minCountPDUOff : 0);
+						} else {
+							f.on = true;
+							f.rem = minCountPDUOn + (minCountPDUOn ? rand()%minCountPDUOn : 0);
+						}
+					} 
+					
+					f.next_t += interval;
+					
 				}
 				if(next_t > f.next_t){
 					next_t = f.next_t;

@@ -15,7 +15,7 @@ using namespace std;
 using namespace TCLAP;
 
 int main(int argc, char * argv[]) {
-	string	apName, apInstance, dstName, dstInstance;
+	string	apName, apInstance, dstName, dstInstance, qos_file;
 	vector<string> difs;
 	vector<QoSpair> qos;
 	int maxMsgs;
@@ -55,6 +55,14 @@ int main(int argc, char * argv[]) {
 			"1",
 			"string"
 		);
+		ValueArg<string> qos_file_a(
+			"Q",
+			"qosfile",
+			"File containing the QoS requirements (required)",
+			false,
+			"",
+			"string"
+		);
 		UnlabeledMultiArg<string> difs_a(
 			"difs",
 			"DIFs to use, empty for any DIF.",
@@ -76,6 +84,7 @@ int main(int argc, char * argv[]) {
 		cmd.add(apInstance_a);
 		cmd.add(dstName_a);
 		cmd.add(dstInstance_a);
+		cmd.add(qos_file_a);
 		cmd.add(maxMsgs_a);
 		cmd.add(difs_a);
 		cmd.parse(argc, argv);
@@ -86,6 +95,11 @@ int main(int argc, char * argv[]) {
 		dstInstance = dstInstance_a.getValue();
 		difs = difs_a.getValue();
 
+		qos_file = qos_file_a.getValue();
+		if (qos_file != "") {
+			parseQoSRequirements(qos, qos_file);
+		}
+		
 		maxMsgs = maxMsgs_a.getValue();
 		if (maxMsgs <= 0) {
 			maxMsgs = 1;

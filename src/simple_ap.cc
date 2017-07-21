@@ -148,6 +148,7 @@ FlowSpecification getQoS(const vector<QoSpair> & rq) {
 		} 
 	}
 
+	cout << qos_spec.toString()<<endl;
 	return qos_spec;
 }
 

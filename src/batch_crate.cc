@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #ifndef RINA_PREFIX
 #define RINA_PREFIX "batch_crate"
@@ -37,11 +38,37 @@ void batch_crate::handle_flow(int port_id, int fd) {
 	};
 	
 	data.flowIdent = flowIdent;
+	system_clock::time_point now = system_clock::now();
+	
+	
+	char * bdata = buffer + sizeof(SDU);
+	string appIdent = name+"-"+instance;
+	int plen = sizeof(SDU) + appIdent.length() + 1;
+	if(plen > BUFF_SIZE) {
+		plen = BUFF_SIZE;
+	}
+	memcpy(bdata, appIdent.c_str(), plen-sizeof(SDU));
+	data.len = plen;
+	data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
+	if (write(fd, buffer, plen) != plen) {	
+		cout << "First PDU error!!!"<<endl;
+		return;
+	}
+	
+	* ((int*)bdata) = n;
+	data.len = sizeof(SDU) + sizeof(int);
+	data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
+	if (write(fd, buffer, plen) != plen) {	
+		cout << "Second PDU error!!!"<<endl;
+		return;
+	}
+	
+	
 	data.len = PDU_S;
 	
 	double dinterval = 8000000.0 * PDU_S / bps;
 	microseconds interval((int)dinterval);
-	system_clock::time_point now = system_clock::now();
+	now = system_clock::now();
 	
 	for(int i = 0; i < n; i++) {
 		_flow f;
