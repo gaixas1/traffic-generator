@@ -107,6 +107,18 @@ datalogger_LDADD    = $(LIBRINA_LIBS) -lrt
 datalogger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
 datalogger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
+#VideoLogger
+videologger_SOURCES  =				\
+	simple_server.cc	\
+    simple_ap.cc	\
+    videologger.cc	\
+    bcommon.cc	\
+    videologger_main.cc
+	
+videologger_LDADD    = $(LIBRINA_LIBS) -lrt 
+videologger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+videologger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+	
 #bVoice
 bvoice_SOURCES  =				\
     simple_ap.cc \
@@ -155,7 +167,8 @@ bin_PROGRAMS                       += bvoice
 bin_PROGRAMS                       += dbvoice		
 bin_PROGRAMS                       += bcrate		
 bin_PROGRAMS                       += logger		
-bin_PROGRAMS                       += datalogger				
+bin_PROGRAMS                       += datalogger		
+bin_PROGRAMS                       += videologger				
 
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += ping
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += clocksincro
@@ -168,3 +181,4 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += dbvoice
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += bcrate
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += logger
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += datalogger
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += videologger

@@ -7,6 +7,7 @@ using namespace std::chrono;
 
 #define BUFF_SIZE 1500
 #define NOW system_clock::now()
+#define NOWCOUNT duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count()
 
 struct SDU {
 	int len;
