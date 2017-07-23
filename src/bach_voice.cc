@@ -60,68 +60,39 @@ void bach_voice::handle_flow(int port_id, int fd) {
 		char buffer[BUFF_SIZE];
 		SDU data;
 	};
+	system_clock::time_point now, end_t, next_t;
+	microseconds interval;
 	
-	data.flowIdent = flowIdent;
-	
-	microseconds interval((int) (1000000.0/Hz));
-	system_clock::time_point now = system_clock::now();
-	
-	char * bdata = buffer + sizeof(SDU);
-	string appIdent = name+"-"+instance;
-	int plen = sizeof(SDU) + appIdent.length() + 1;
-	if(plen > BUFF_SIZE) {
-		plen = BUFF_SIZE;
-	}
-	memcpy(bdata, appIdent.c_str(), plen-sizeof(SDU));
-	data.len = plen;
-	data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
-	if (write(fd, buffer, data.len) != data.len) {	
-		cout << "First PDU error!!!"<<endl;
+	if(!sendInit(fd, buffer, name, instance, n)) {
 		return;
 	}
 	
-	* ((int*)bdata) = n;
-	data.len = sizeof(SDU) + sizeof(int);
-	data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
-	
-	if (write(fd, buffer, data.len) != data.len) {	
-		cout << "Second PDU error!!!"<<endl;
-		return;
-	}
-	
-	
-	now = system_clock::now();
 	int DIF_PDU, DIF_ON, DIF_OFF;
-	DIF_PDU = MAX_PDU - MIN_PDU;
-	DIF_ON = MAX_ON - MIN_ON;
-	DIF_OFF = MAX_OFF - MIN_OFF;
+		DIF_PDU = MAX_PDU - MIN_PDU;
+		DIF_ON = MAX_ON - MIN_ON;
+		DIF_OFF = MAX_OFF - MIN_OFF;
+	
+	
+	now = NOW;
 	
 	for(int i = 0; i < n; i++) {
-		voice_flow f;
-		f.id = i;
-		f.next_sq = 0;
+		voice_flow f(i);
 		f.rem = (int) ceil((MIN_ON + (DIF_ON ? rand()%DIF_ON : 0)) * Hz / 1000.0);
 		f.next_t = now + milliseconds(rand() % ((MIN_OFF + MAX_OFF)/2));
 		flows.push_back(f);
 	}
 	
-	system_clock::time_point end_t = now;
-	if(duration <= 0) {
-		end_t += minutes(1);
-	} else {
-		end_t += seconds(duration);
-	}
-	
-	system_clock::time_point next_t = end_t;
+	next_t = end_t = now + (duration <= 0 ? minutes(1) : seconds(duration));
 	for(int i = 0; i < n; i++) {
 		if(next_t > flows[i].next_t){
 			next_t = flows[i].next_t;
 		}
 	}
 	
+	interval = microseconds((int) (1000000.0/Hz));
 	try {
 		while(next_t < end_t) {
-			now = system_clock::now();
+			now = NOW;
 			next_t = end_t;
 			for(int i = 0; i < n; i++) {
 				voice_flow & f = flows[i];
@@ -150,8 +121,8 @@ void bach_voice::handle_flow(int port_id, int fd) {
 			}
 			
 			if (busyWait) {
-				while(system_clock::now() < next_t) {}
-			} else if (system_clock::now() < next_t) {
+				while(NOW < next_t) {}
+			} else if (NOW < next_t) {
 				sleep_until(next_t);
 			}
 		}

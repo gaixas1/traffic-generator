@@ -19,7 +19,6 @@ int main(int argc, char * argv[]) {
 	vector<string> difs;
 	vector<QoSpair> qos;
 	
-	int flowIdent = 0;
 	bool busywait = true;
 	double Hz = 1;
 	int flows =1, duration = 0, minPDU = 50, maxPDU=150, minOn = 1000, maxOn = 1000, minOff = 1000, maxOff = 1000;
@@ -75,16 +74,6 @@ int main(int argc, char * argv[]) {
 			"string"
 		);
 
-		
-
-		ValueArg<int> flowIdent_a(
-			"I",
-			"flowid",
-			"Unique flow identifier, default = 0.",
-			false,
-			0,
-			"int"
-		);
 
 		SwitchArg busywait_a(
 			"w",
@@ -181,7 +170,6 @@ int main(int argc, char * argv[]) {
 		cmd.add(dstInstance_a);
 		cmd.add(qos_file_a);
 		
-		cmd.add(flowIdent_a);
 		cmd.add(busywait_a);
 		cmd.add(duration_a);
 		cmd.add(f_a);
@@ -202,7 +190,6 @@ int main(int argc, char * argv[]) {
 		dstInstance = dstInstance_a.getValue();
 		difs = difs_a.getValue();
 		
-		flowIdent = flowIdent_a.getValue();
 		busywait = busywait_a.getValue();
 		Hz = hz_a.getValue();
 		if (Hz <= 0) { Hz = 1; }
@@ -210,7 +197,7 @@ int main(int argc, char * argv[]) {
 		if (flows < 1) { flows = 1; }
 		duration = duration_a.getValue();
 		minPDU = minPDU_a.getValue();
-		if (minPDU < 50) { minPDU = 50; }
+		if (minPDU < (int)sizeof(SDU)) { minPDU = (int)sizeof(SDU); }
 		maxPDU = maxPDU_a.getValue();
 		if (maxPDU < minPDU) { maxPDU = minPDU; }
 		minOn = minOn_a.getValue();
@@ -237,7 +224,7 @@ int main(int argc, char * argv[]) {
 	try {
 		rina::initialize("INFO", "");
 
-		bach_voice c(apName, apInstance, dstName, dstInstance, qos, flowIdent, Hz, busywait, flows);
+		bach_voice c(apName, apInstance, dstName, dstInstance, qos, Hz, busywait, flows);
 		c.register_ap(difs);
 		c.setDuration(duration);
 		c.setPDU(minPDU, maxPDU);

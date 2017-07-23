@@ -76,6 +76,7 @@ readrop_SOURCES  =				\
 	simple_server.cc	\
     simple_ap.cc	\
     readrop.cc	\
+    bcommon.cc	\
     readrop_main.cc
 	
 readrop_LDADD    = $(LIBRINA_LIBS) -lrt 
@@ -87,17 +88,31 @@ logger_SOURCES  =				\
 	simple_server.cc	\
     simple_ap.cc	\
     logger.cc	\
+    bcommon.cc	\
     logger_main.cc
 	
 logger_LDADD    = $(LIBRINA_LIBS) -lrt 
 logger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
 logger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
+#DataLogger
+datalogger_SOURCES  =				\
+	simple_server.cc	\
+    simple_ap.cc	\
+    datalogger.cc	\
+    bcommon.cc	\
+    datalogger_main.cc
+	
+datalogger_LDADD    = $(LIBRINA_LIBS) -lrt 
+datalogger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+datalogger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+	
 #bVoice
 bvoice_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
 	bach_voice.cc \
+    bcommon.cc	\
     bvoice_main.cc
 	
 bvoice_LDADD    = $(LIBRINA_LIBS) -lrt 
@@ -109,6 +124,7 @@ dbvoice_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
 	dbach_voice.cc \
+    bcommon.cc	\
     dbvoice_main.cc
 	
 dbvoice_LDADD    = $(LIBRINA_LIBS) -lrt 
@@ -120,6 +136,7 @@ bcrate_SOURCES  =				\
     simple_ap.cc \
 	simple_client.cc \
 	batch_crate.cc \
+    bcommon.cc	\
     bcrate_main.cc
 	
 bcrate_LDADD    = $(LIBRINA_LIBS) -lrt 
@@ -137,7 +154,8 @@ bin_PROGRAMS                       += readrop
 bin_PROGRAMS                       += bvoice	
 bin_PROGRAMS                       += dbvoice		
 bin_PROGRAMS                       += bcrate		
-bin_PROGRAMS                       += logger				
+bin_PROGRAMS                       += logger		
+bin_PROGRAMS                       += datalogger				
 
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += ping
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += clocksincro
@@ -149,3 +167,4 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += bvoice
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += dbvoice
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += bcrate
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += logger
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += datalogger

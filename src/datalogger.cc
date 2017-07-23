@@ -1,7 +1,7 @@
-#include "logger.h"
+#include "datalogger.h"
 
 #ifndef RINA_PREFIX
-#define RINA_PREFIX "LOGGER"
+#define RINA_PREFIX "DATALOGGER"
 #endif // !RINA_PREFIX
 
 #include <librina/librina.h>
@@ -16,7 +16,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace rina;
 
-void logger::handle_flow(int port_id, int fd) {
+void datalogger::handle_flow(int port_id, int fd) {
 	union {
 		char buffer[BUFF_SIZE];
 		SDU data;
@@ -43,12 +43,14 @@ void logger::handle_flow(int port_id, int fd) {
 		return;
 	}
 	
-	long long init_T = data.t;
+	long long init_T = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	
 	int n = *(int*)bdata;
 	cout << "Flow " << port_id << ","<< fd <<" number of sub-flows "<< n << endl;
 	
 	vector<fstream  *> files;
+	vector<int> counts;
+	vector<long long> lenghts;
 	try {
 		for(int i = 0; i < n; i++) {
 			string filename = "./logs/"+name+"-"+instance+"-"+clientName+"-"+to_string(i)+".csv";
@@ -57,39 +59,55 @@ void logger::handle_flow(int port_id, int fd) {
 			fstream  * f = new fstream ();
 			f->open(filename.c_str(),fstream::out | fstream::trunc);
 			files.push_back(f);
-			*f << 
-				data.sq 
-				<< ";" << "SEQ" 
-				<< ";" << "Bytes"
-				<< ";" << "DT" <<endl;
-				
+			counts.push_back(0);
+			lenghts.push_back(0);
+			*f 
+					<< "SEQ"
+					<< ";" << "COUNT" 
+					<< ";" << "Bytes"
+					<< ";" << "DT" <<endl;
 		}
 	} catch(...){
 		cout << "Error creating log files!!!"<<endl;
 		return;
 	}
 	
-	int count = 0;
-	long long len = 0;
 	try {
 		for(;;){
 			if(!read_SDU(fd, buffer)) {
 				break;
 			}
+			int & count = counts[data.id];
+			long long & lenght = lenghts[data.id];
 			count++;
-			len += data.len;
-			long long dt = data.t - init_T;
+			lenght+=data.len;
 			t = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-			*(files[data.id]) << data.sq  << ";" << dt << ";" << data.len << ";" << (t-data.t) <<endl;
+			if(count >= countToLog) {
+				*files[data.id] 
+					<< data.sq  
+					<< ";" << count 
+					<< ";" << lenght
+					<< ";" << (t-init_T) <<endl;
+				count = 0;
+				lenght = 0;
+			}
 		}
 	} catch(...){}
 	
 	
 	
 	cout << "Flow " << port_id << ","<< fd <<" end" << endl;
-	cout << "DATA:: " << count << ","<< len << endl;
 	try{
-		for(fstream * f : files) {
+		for(int i = 0; i < n; i++) {
+			fstream * f = files[i];
+			int & count = counts[data.id];
+			long long & lenght = lenghts[data.id];
+			t = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+			*f 
+					<< data.sq  
+					<< ";" << count 
+					<< ";" << lenght
+					<< ";" << (t-init_T) <<endl;
 			f->close();
 		}
 		release_flow(port_id);

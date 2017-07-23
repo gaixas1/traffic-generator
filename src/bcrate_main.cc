@@ -19,7 +19,6 @@ int main(int argc, char * argv[]) {
 	vector<string> difs;
 	vector<QoSpair> qos;
 	
-	int flowIdent = 0;
 	bool busywait = true;
 	int bps = 1;
 	int flows =1, duration = 0, PDU_S = 1000;
@@ -76,16 +75,6 @@ int main(int argc, char * argv[]) {
 		);
 
 		
-
-		ValueArg<int> flowIdent_a(
-			"I",
-			"flowid",
-			"Unique flow identifier, default = 0.",
-			false,
-			0,
-			"int"
-		);
-
 		SwitchArg busywait_a(
 			"w",
 			"busywait",
@@ -135,7 +124,6 @@ int main(int argc, char * argv[]) {
 		cmd.add(dstInstance_a);
 		cmd.add(qos_file_a);
 		
-		cmd.add(flowIdent_a);
 		cmd.add(busywait_a);
 		cmd.add(duration_a);
 		cmd.add(f_a);
@@ -151,7 +139,6 @@ int main(int argc, char * argv[]) {
 		dstInstance = dstInstance_a.getValue();
 		difs = difs_a.getValue();
 		
-		flowIdent = flowIdent_a.getValue();
 		busywait = busywait_a.getValue();
 		bps = bps_a.getValue();
 		if (bps <= 0) { bps = 1; }
@@ -159,7 +146,7 @@ int main(int argc, char * argv[]) {
 		if (flows < 1) { flows = 1; }
 		duration = duration_a.getValue();
 		PDU_S = PDU_a.getValue();
-		if (PDU_S < 50) { PDU_S = 50; }
+		if (PDU_S < (int)sizeof(SDU)) { PDU_S = (int)sizeof(SDU); }
 
 		qos_file = qos_file_a.getValue();
 		if (qos_file != "") {
@@ -176,7 +163,7 @@ int main(int argc, char * argv[]) {
 	try {
 		rina::initialize("INFO", "");
 
-		batch_crate c(apName, apInstance, dstName, dstInstance, qos, flowIdent, bps, busywait, flows);
+		batch_crate c(apName, apInstance, dstName, dstInstance, qos, bps, busywait, flows);
 		c.register_ap(difs);
 		c.setDuration(duration);
 		c.setPDU(PDU_S);
