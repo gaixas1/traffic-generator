@@ -10,6 +10,7 @@ using namespace std;
 using namespace std::chrono;
 
 bool read_SDU(int fd, char * buffer) {
+	char * buffer2 = buffer;
 	SDU * data = (SDU*)buffer;
 	int rem = sizeof(int);
 	do {
@@ -23,7 +24,7 @@ bool read_SDU(int fd, char * buffer) {
 	} while (rem > 0);
 	rem += data->len - sizeof(int);
 	cout << "TRem " << rem <<endl;
-	cout << (int)buffer[0] << "."<< (int)buffer[1] << "."<< (int)buffer[2] << "."<< (int)buffer[3] << "."<< endl;
+	cout << (int)buffer2[0] << "."<< (int)buffer2[1] << "."<< (int)buffer2[2] << "."<< (int)buffer2[3] << "."<< endl;
 	do {
 		cout << "TR " << rem << "/" << (void*)buffer <<endl;
 		int ret = read(fd, buffer, rem);
