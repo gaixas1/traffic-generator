@@ -122,6 +122,7 @@ void dbach_voice::handle_flow(int port_id, int fd) {
 					data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
 					f.rem--;
 					cout << "S : " << data.len << " / "<< data.id << " / "<< data.sq<< " / "<< data.t <<endl;
+					cout << (int)buffer[0] << "."<< (int)buffer[1] << "."<< (int)buffer[2] << "."<< (int)buffer[3] << "."<< endl;
 					if (write(fd, buffer, data.len) != data.len) {
 						cerr << "SEND ERROR!!!" <<endl;
 						return;

@@ -22,6 +22,8 @@ bool read_SDU(int fd, char * buffer) {
 		cout << "QR " << rem << "/" << (void*)buffer <<endl;
 	} while (rem > 0);
 	rem += data->len - sizeof(int);
+	cout << "TRem " << rem <<endl;
+	cout << (int)buffer[0] << "."<< (int)buffer[1] << "."<< (int)buffer[2] << "."<< (int)buffer[3] << "."<< endl;
 	do {
 		cout << "TR " << rem << "/" << (void*)buffer <<endl;
 		int ret = read(fd, buffer, rem);
