@@ -48,6 +48,7 @@ bool sendInit(int fd, char * buffer, string name, string instance, int n){
 		cout << "First PDU error!!!"<<endl;
 		return false;
 	}
+	cout << "S : " << data->len << " / "<< data->id << " / "<< data->sq<< " / "<< data->t <<endl;
 	
 	//Send initial 
 	* ((int*)bdata) = n;
@@ -57,5 +58,7 @@ bool sendInit(int fd, char * buffer, string name, string instance, int n){
 		cout << "Second PDU error!!!"<<endl;
 		return false;
 	}
+	cout << "S : " << data->len << " / "<< data->id << " / "<< data->sq<< " / "<< data->t <<endl;
+	
 	return true;
 }
