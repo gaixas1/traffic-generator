@@ -20,7 +20,7 @@ using namespace std::this_thread;
 using namespace rina;
 
 void bach_voice::setPDU(int min_B, int max_B) {
-	if (min_B <= (int)sizeof(SDU) ) {
+	if (min_B <= MIN_BUFF_SIZE ) {
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size");
 	}
 	if (min_B > max_B) {

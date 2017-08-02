@@ -18,6 +18,8 @@ using namespace std::chrono;
 using namespace std::this_thread;
 using namespace rina;
 
+#define DATA_SIZE 32
+
 struct data_t {
 	long ping, pong;
 	int seq;
@@ -28,14 +30,14 @@ void clocksincro_server::handle_flow(int port_id, int fd) {
 	char * buffer = (char*)& data;
 	try {
 		do{
-			if (readBuffer(fd, buffer, sizeof(data_t)) != 0) {
+			if (readBuffer(fd, buffer, DATA_SIZE) != 0) {
 				LOG_ERR("FAILED AT READ - ABORT FLOW");
 				break;
 			}
 			
 			data.pong = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
 			
-			if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
+			if (write(fd, buffer, DATA_SIZE) != DATA_SIZE) {
 				LOG_ERR("FAILED AT ECHO - ABORT FLOW");
 				break;
 			}
@@ -70,12 +72,12 @@ void clocksincro_client::handle_flow(int port_id, int fd) {
 			
 			data.ping = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
 			
-			if (write(fd, buffer, sizeof(data_t)) != sizeof(data_t)) {
+			if (write(fd, buffer, DATA_SIZE) != DATA_SIZE) {
 				LOG_ERR("FAILED AT ECHO - ABORT FLOW");
 				break;
 			}
 			
-			if (readBuffer(fd, buffer, sizeof(data_t)) != 0) {
+			if (readBuffer(fd, buffer, DATA_SIZE) != 0) {
 				LOG_ERR("FAILED AT READ - ABORT FLOW");
 				break;
 			}

@@ -31,7 +31,6 @@ void logger::handle_flow(int port_id, int fd) {
 		cout << "Flow " << port_id << ","<< fd <<" error first SDU" << endl;
 		return;
 	}
-	cout << "R : " << data.len << " / "<< data.id << " / "<< data.sq<< " / "<< data.t <<endl;
 	string clientName = bdata;
 	
 	cout << "Flow " << port_id << ","<< fd <<" name : "<< clientName << endl;
@@ -43,7 +42,6 @@ void logger::handle_flow(int port_id, int fd) {
 		cout << "Flow " << port_id << ","<< fd <<" error second SDU" << endl;
 		return;
 	}
-			cout << "R : " << data.len << " / "<< data.id << " / "<< data.sq<< " / "<< data.t <<endl;
 	
 	long long init_T = data.t;
 	
@@ -79,7 +77,6 @@ void logger::handle_flow(int port_id, int fd) {
 				cerr << "flow ended or READ ERROR!!!" <<endl;
 				break;
 			}
-			cout << "R : " << data.len << " / "<< data.id << " / "<< data.sq<< " / "<< data.t <<endl;
 			count++;
 			len += data.len;
 			long long dt = data.t - init_T;

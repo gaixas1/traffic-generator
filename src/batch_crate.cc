@@ -20,7 +20,7 @@ using namespace std::this_thread;
 using namespace rina;
 
 void batch_crate::setPDU(int B) {
-	if (B < (int)sizeof(SDU) ) {
+	if (B < MIN_BUFF_SIZE ) {
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size");
 	}
 	PDU_S = B;

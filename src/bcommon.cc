@@ -10,32 +10,23 @@ using namespace std;
 using namespace std::chrono;
 
 bool read_SDU(int fd, char * buffer) {
-	char * buffer2 = buffer;
 	SDU * data = (SDU*)buffer;
-	int32_t rem = sizeof(int32_t);
+	int rem = MIN_BUFF_SIZE;
 	do {
-		cout << "TR " << rem << "/" <<  (void*)buffer <<endl;
 		int ret = read(fd, buffer, rem);
-		cout << "RR " << ret <<endl;
 		if (ret <= 0) { return false; }
 		buffer += ret;
 		rem -= ret;
-		cout << "QR " << rem << "/" << (void*)buffer <<endl;
 	} while (rem > 0);
-	rem += data->len - sizeof(int32_t);
-	cout << "TRem " << rem <<endl;
-	cout << (int)buffer2[0] << "."<< (int)buffer2[1] << "."<< (int)buffer2[2] << "."<< (int)buffer2[3] << "."<< endl;
-	do {
-		cout << "TR " << rem << "/" << (void*)buffer <<endl;
+	rem += data->len - MIN_BUFF_SIZE;
+	while(rem > 0) {
 		int ret = read(fd, buffer, rem);
-		cout << "RR " << ret <<endl;
 		if (ret <= 0) {
 			return false;
 		}
 		buffer += ret;
 		rem -= ret;
-		cout << "QR " << rem << "/" << (void*)buffer <<endl;
-	} while (rem > 0);
+	}
 	return true;
 }
 
@@ -51,6 +42,9 @@ bool sendInit(int fd, char * buffer, string name, string instance, int n){
 	}
 	memcpy(bdata, appIdent.c_str(), data->len-sizeof(SDU));
 	data->t = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	if(data->len < MIN_BUFF_SIZE) {
+		data->len = MIN_BUFF_SIZE;
+	}
 	if (write(fd, buffer, data->len) != data->len) {	 
 		cout << "First PDU error!!!"<<endl;
 		return false;
@@ -61,6 +55,9 @@ bool sendInit(int fd, char * buffer, string name, string instance, int n){
 	* ((int*)bdata) = n;
 	data->len = sizeof(SDU) + sizeof(int);
 	data->t = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	if(data->len < MIN_BUFF_SIZE) {
+		data->len = MIN_BUFF_SIZE;
+	}
 	if (write(fd, buffer, data->len) != data->len) {	
 		cout << "Second PDU error!!!"<<endl;
 		return false;

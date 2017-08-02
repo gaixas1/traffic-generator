@@ -20,7 +20,7 @@ using namespace std::this_thread;
 using namespace rina;
 
 void dbach_voice::setPDUON(int min_B, int max_B) {
-	if (min_B < (int)sizeof(SDU) ) {
+	if (min_B < MIN_BUFF_SIZE ) {
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size");
 	}
 	if (min_B > max_B) {
@@ -30,7 +30,7 @@ void dbach_voice::setPDUON(int min_B, int max_B) {
 	MAX_PDU_ON = max_B;
 }
 void dbach_voice::setPDUOFF(int min_B, int max_B) {
-	if (min_B < (int)sizeof(SDU) ) {
+	if (min_B < MIN_BUFF_SIZE ) {
 		cout << min_B << " vs "<< (int)sizeof(SDU)<<endl;
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size (silence)");
 	}
@@ -121,8 +121,6 @@ void dbach_voice::handle_flow(int port_id, int fd) {
 					data.sq = f.next_sq++;
 					data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
 					f.rem--;
-					cout << "S : " << data.len << " / "<< data.id << " / "<< data.sq<< " / "<< data.t <<endl;
-					cout << (int)buffer[0] << "."<< (int)buffer[1] << "."<< (int)buffer[2] << "."<< (int)buffer[3] << "."<< endl;
 					if (write(fd, buffer, data.len) != data.len) {
 						cerr << "SEND ERROR!!!" <<endl;
 						return;
