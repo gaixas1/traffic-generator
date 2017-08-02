@@ -17,7 +17,7 @@ bool read_SDU(int fd, char * buffer) {
 		if (ret <= 0) { return false; }
 		buffer += ret;
 		rem -= ret;
-		cout << ret << "/" << rem<<endl;
+		//cout << ret << "/" << rem<<endl;
 	} while (rem > 0);
 	rem += data->len - sizeof(int);
 	do {
@@ -27,7 +27,7 @@ bool read_SDU(int fd, char * buffer) {
 		}
 		buffer += ret;
 		rem -= ret;
-		cout << ret << "/" << rem<<endl;
+		//cout << ret << "/" << rem<<endl;
 	} while (rem > 0);
 	return true;
 }
