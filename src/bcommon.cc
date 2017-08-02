@@ -13,21 +13,25 @@ bool read_SDU(int fd, char * buffer) {
 	SDU * data = (SDU*)buffer;
 	int rem = sizeof(int);
 	do {
+		cout << "TR" << rem << "/" <<  buffer <<endl;
 		int ret = read(fd, buffer, rem);
+		cout << "RR" << ret <<endl;
 		if (ret <= 0) { return false; }
 		buffer += ret;
 		rem -= ret;
-		//cout << ret << "/" << rem<<endl;
+		cout << "QR" << rem << "/" << buffer <<endl;
 	} while (rem > 0);
 	rem += data->len - sizeof(int);
 	do {
+		cout << "TR" << rem << "/" << buffer <<endl;
 		int ret = read(fd, buffer, rem);
+		cout << "RR" << ret <<endl;
 		if (ret <= 0) {
 			return false;
 		}
 		buffer += ret;
 		rem -= ret;
-		//cout << ret << "/" << rem<<endl;
+		cout << "QR" << rem << "/" << buffer <<endl;
 	} while (rem > 0);
 	return true;
 }
