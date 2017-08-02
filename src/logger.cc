@@ -58,8 +58,8 @@ void logger::handle_flow(int port_id, int fd) {
 			f->open(filename.c_str(),fstream::out | fstream::trunc);
 			files.push_back(f);
 			*f << 
-				data.sq 
-				<< ";" << "SEQ" 
+				"SEQ" 
+				<< ";" << "T" 
 				<< ";" << "Bytes"
 				<< ";" << "DT" <<endl;
 				

@@ -197,6 +197,9 @@ port_fd simple_ap::request_flow(const std::string& apn, const std::string& api, 
 
 /* FIXME, correct return value, update my_flows */
 int simple_ap::release_flow(const int port_id) {
+	ipcManager->deallocate_flow(port_id);
+	return 0;
+	/*
 	unsigned int seqNum = ipcManager->requestFlowDeallocation(port_id);
 	for (;;) {
 		IPCEvent * event = ipcEventProducer->eventWait();
@@ -207,6 +210,7 @@ int simple_ap::release_flow(const int port_id) {
 		}
 		LOG_DBG("Got new event %d", event->eventType);
 	}
+	*/
 }
 
 /* TODO: implement this stub */
