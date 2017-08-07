@@ -31,7 +31,6 @@ void dbach_voice::setPDUON(int min_B, int max_B) {
 }
 void dbach_voice::setPDUOFF(int min_B, int max_B) {
 	if (min_B < MIN_BUFF_SIZE ) {
-		cout << min_B << " vs "<< (int)sizeof(SDU)<<endl;
 		throw std::invalid_argument("received non-positive or \"< headers size\" value for PDU size (silence)");
 	}
 	if (min_B > max_B) {
@@ -84,6 +83,10 @@ void dbach_voice::handle_flow(int port_id, int fd) {
 		DIF_ON = MAX_ON - MIN_ON;
 		DIF_OFF = MAX_OFF - MIN_OFF;
 		
+	if(Hz <= 0) {
+		Hz = 1;
+	}
+		
 	int minCountPDUOn, difCountPDUOn, minCountPDUOff, difCountPDUOff;
 		minCountPDUOn = MIN_ON * Hz / 1000.0;
 		difCountPDUOn = DIF_ON * Hz / 1000.0;
@@ -116,7 +119,7 @@ void dbach_voice::handle_flow(int port_id, int fd) {
 				voice_flow & f = flows[i];
 				while(f.next_t <= now) {
 					//SEND PDU
-					data.len = f.on ? (MIN_PDU_ON + (DIF_PDU_ON ? rand()%DIF_PDU_ON : 0)) : (MIN_PDU_OFF + (DIF_PDU_OFF ? rand()%DIF_PDU_OFF : 0));
+					data.len = f.on ? (MIN_PDU_ON + (DIF_PDU_ON>0 ? rand()%DIF_PDU_ON : 0)) : (MIN_PDU_OFF + (DIF_PDU_OFF>0 ? rand()%DIF_PDU_OFF : 0));
 					data.id = f.id;
 					data.sq = f.next_sq++;
 					data.t = duration_cast<milliseconds>(now.time_since_epoch()).count();
@@ -128,7 +131,7 @@ void dbach_voice::handle_flow(int port_id, int fd) {
 					
 					//NEXT PDU
 					if(f.rem <= 0) {
-						f.rem = f.on ? (minCountPDUOff + (minCountPDUOff ? rand()%minCountPDUOff : 0)) : (minCountPDUOn + (minCountPDUOn ? rand()%minCountPDUOn : 0)); 
+						f.rem = f.on ? (minCountPDUOff + (difCountPDUOff>0 ? rand()%difCountPDUOff : 0)) : (minCountPDUOn + (difCountPDUOn>0 ? rand()%difCountPDUOn : 0)); 
 						f.on = !f.on;
 					} 
 					f.next_t += interval;

@@ -231,7 +231,7 @@ int main(int argc, char * argv[]) {
 		minOff = minOff_a.getValue();
 		if (minOff < 1) { minOff = 1; }
 		maxOff = maxOff_a.getValue();
-		if (maxOn < minOff) { maxOn = minOff; }
+		if (maxOff < minOff) { maxOff = minOff; }
 
 		qos_file = qos_file_a.getValue();
 		if (qos_file != "") {
