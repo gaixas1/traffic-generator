@@ -8,6 +8,47 @@ bin_PROGRAMS                       =
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT =
 
 
+#Test logger
+testLogger_SOURCES  =				\
+	test_logger_main.cc	\
+	simple_server.cc	\
+    simple_ap.cc	\
+    test_common.cc	\
+    test_logger.cc
+
+testLogger_LDADD    = $(LIBRINA_LIBS) -lrt 
+testLogger_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+testLogger_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+
+#Test voice
+testVoice_SOURCES  =				\
+	test_voice_main.cc	\
+	simple_client.cc	\
+    simple_ap.cc	\
+    test_common.cc	\
+    test_base.cc	\
+    test_voice.cc
+
+testVoice_LDADD    = $(LIBRINA_LIBS) -lrt 
+testVoice_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+testVoice_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+
+#Test data
+testData_SOURCES  =				\
+	test_data_main.cc	\
+	simple_client.cc	\
+    simple_ap.cc	\
+    test_common.cc	\
+    test_base.cc	\
+    test_data.cc
+
+testData_LDADD    = $(LIBRINA_LIBS) -lrt 
+testData_CPPFLAGS =	 $(LIBRINA_CFLAGS) $(CPPFLAGS_EXTRA) -I$(srcdir)/tclap
+testData_CXXFLAGS =	$(CPPFLAGS_EXTRA)
+
+
+
+
 #Ping
 ping_SOURCES  =				\
 	ping.cc	\
@@ -157,6 +198,9 @@ bcrate_CXXFLAGS =	$(CPPFLAGS_EXTRA)
 	
 ## BINs
 
+bin_PROGRAMS                       += testLogger
+bin_PROGRAMS                       += testVoice
+bin_PROGRAMS                       += testData
 bin_PROGRAMS                       += ping
 bin_PROGRAMS                       += clocksincro
 bin_PROGRAMS                       += server
@@ -170,6 +214,9 @@ bin_PROGRAMS                       += logger
 bin_PROGRAMS                       += datalogger		
 bin_PROGRAMS                       += videologger				
 
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += testLogger
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += testVoice
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += testData
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += ping
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += clocksincro
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += server

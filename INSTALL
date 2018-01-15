@@ -1,7 +1,7 @@
 Quick Installation Instructions
 *******************************
 
-# dependencies: librina, BOOST C++ libraries >= 1.55
+# dependencies: librina, C++11
 
 # you may need to point to librina libraries
 
