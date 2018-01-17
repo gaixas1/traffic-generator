@@ -150,7 +150,7 @@ int main(int argc, char * argv[]) {
 		rina::initialize("INFO", "");
 
 		test_data c(apName, apInstance, dstName, dstInstance, qos, duration,
-			flowIdent, qosIdent, 1400, ratebps, false);
+			flowIdent, qosIdent, 1400, ratebps, true);
 		c.register_ap(difs);
 		c.run();
 	}

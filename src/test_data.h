@@ -5,11 +5,12 @@ class test_data : public test_base {
 public:
 	test_data(const std::string& apn, const std::string& api,
 		const std::string& _dst_apn, const std::string& _dst_api, const vector<QoSpair>&_qos, int testduration,
-		int _flowIdent, int _qosIdent, unsigned int _sdu_size, unsigned long long ratebps);
+		int _flowIdent, int _qosIdent, unsigned int _sdu_size, unsigned long long ratebps, bool _cont);
 
 protected:
 	bool flow();
 
+	bool cont;
 	unsigned int sdu_size;
 	nanoseconds interval;
 
